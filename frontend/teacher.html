@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>پنل استاد | بال پرواز</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <header class="site-header">
+
+        <div class="school-name">
+            بال پرواز
+        </div>
+
+        <div class="school-line"></div>
+
+        <h1>
+            پنل استاد
+        </h1>
+
+        <p class="subtitle">
+            ایجاد پروژه و ثبت فایل Master
+        </p>
+
+    </header>
+
+
+    <!-- INSTRUCTION -->
+
+    <section class="card instruction-card">
+
+        <div class="instruction-icon">
+            📘
+        </div>
+
+        <div class="instruction-content">
+
+            <h2>
+                راهنمای استاد
+            </h2>
+
+            <p>
+                برای ایجاد یک پروژه جدید، ابتدا
+                <strong>شماره پروژه</strong>
+                را وارد کنید و سپس فایل اصلی Excel پروژه
+                را به عنوان
+                <strong>Master Project</strong>
+                انتخاب نمایید.
+            </p>
+
+            <p>
+                سیستم ساختار و قوانین فایل Master را بررسی
+                کرده و آن را برای ارزیابی پروژه‌های
+                دانش‌آموزان ذخیره می‌کند.
+            </p>
+
+            <div class="instruction-note">
+                💡 فقط فایل اصلی Excel با فرمت
+                <strong>.xlsx</strong>
+                یا
+                <strong>.xlsm</strong>
+                قابل قبول است.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CREATE PROJECT -->
+
+    <section class="card">
+
+        <h2>
+            ایجاد پروژه جدید
+        </h2>
+
+        <form id="teacherForm">
+
+            <!-- PROJECT ID -->
+
+            <div class="form-group">
+
+                <label for="projectId">
+                    شماره پروژه
+                </label>
+
+                <input
+                    type="text"
+                    id="projectId"
+                    placeholder="مثلاً Project_1"
+                    required
+                >
+
+                <small class="file-hint">
+                    یک شناسه مشخص برای پروژه وارد کنید.
+                </small>
+
+            </div>
+
+
+            <!-- MASTER FILE -->
+
+            <div class="form-group">
+
+                <label for="masterFile">
+                    فایل Master پروژه
+                </label>
+
+                <input
+                    type="file"
+                    id="masterFile"
+                    accept=".xlsx,.xlsm"
+                    required
+                >
+
+                <small class="file-hint">
+                    فایل اصلی Excel پروژه را انتخاب کنید.
+                </small>
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <button
+                type="submit"
+                id="createButton"
+            >
+                ایجاد و ذخیره پروژه
+            </button>
+
+        </form>
+
+
+        <!-- LOADING -->
+
+        <div id="loading" class="hidden">
+
+            <div class="loading-spinner"></div>
+
+            <strong>
+                در حال ایجاد پروژه...
+            </strong>
+
+            <span>
+                فایل Master در حال بررسی و ذخیره شدن است.
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- SUCCESS RESULT -->
+
+    <section
+        id="successResult"
+        class="card hidden"
+    >
+
+        <h2>
+            پروژه با موفقیت ایجاد شد ✅
+        </h2>
+
+        <div class="result-item">
+
+            <strong>
+                شماره پروژه
+            </strong>
+
+            <span id="resultProjectId">
+                -
+            </span>
+
+        </div>
+
+        <div class="result-item">
+
+            <strong>
+                فایل Master
+            </strong>
+
+            <span id="resultFileName">
+                -
+            </span>
+
+        </div>
+
+        <div class="instruction-note">
+
+            ✅ قوانین و ساختار فایل Master با موفقیت
+            ذخیره شد.
+
+            <br><br>
+
+            اکنون دانش‌آموزان می‌توانند پروژه خود را
+            با همین شماره پروژه ارسال کنند.
+
+        </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <p>
+            بال پرواز
+        </p>
+
+        <span>
+            سامانه هوشمند نمره‌دهی پروژه‌ها
+        </span>
+
+    </footer>
+
+</div>
+
+
+<script src="/static/teacher.js"></script>
+
+</body>
+
+</html>
+

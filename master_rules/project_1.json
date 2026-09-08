@@ -1,0 +1,330 @@
+{
+  "file_name": "master_4e02e03b6d7c45f5a2d76735985e4b53_پروژه اول ماه سنبله.xlsx",
+  "total_sheets": 2,
+  "sheet_names": [
+    "Sheet1",
+    "Sheet2"
+  ],
+  "sheets": {
+    "Sheet1": {
+      "header_row": 3,
+      "total_rows": 14,
+      "data_rows": 11,
+      "total_columns": 1,
+      "columns": [
+        "جدول مضامین"
+      ],
+      "normalized_columns": [
+        "جدول مضامین"
+      ],
+      "column_metadata": [
+        {
+          "header": "جدول مضامین",
+          "normalized_header": "جدول مضامین",
+          "column_number": 3,
+          "column_letter": "C",
+          "position": 3
+        }
+      ],
+      "required_columns": [
+        "جدول مضامین"
+      ],
+      "data_types": {
+        "جدول مضامین": [
+          "integer",
+          "string"
+        ]
+      },
+      "has_formulas": false,
+      "formula_count": 0,
+      "formulas": [],
+      "formula_map": {},
+      "formatting": {
+        "جدول مضامین": {
+          "normalized_header": "جدول مضامین",
+          "column_letter": "C",
+          "header_format": {
+            "font": {
+              "name": "Aptos Narrow",
+              "size": 16.0,
+              "bold": true,
+              "italic": false,
+              "color": null
+            },
+            "fill": {
+              "color": null,
+              "pattern": "solid"
+            },
+            "border": {
+              "left": null,
+              "right": null,
+              "top": null,
+              "bottom": "medium"
+            },
+            "alignment": {
+              "horizontal": "center",
+              "vertical": "center",
+              "wrap_text": null
+            },
+            "number_format": "General"
+          },
+          "data_formats": [
+            {
+              "font": {
+                "name": "Aptos Narrow",
+                "size": 11.0,
+                "bold": false,
+                "italic": false,
+                "color": null
+              },
+              "fill": {
+                "color": "00000000",
+                "pattern": null
+              },
+              "border": {
+                "left": null,
+                "right": null,
+                "top": null,
+                "bottom": "medium"
+              },
+              "alignment": {
+                "horizontal": null,
+                "vertical": null,
+                "wrap_text": null
+              },
+              "number_format": "General"
+            },
+            {
+              "font": {
+                "name": "Aptos Narrow",
+                "size": 11.0,
+                "bold": true,
+                "italic": false,
+                "color": null
+              },
+              "fill": {
+                "color": null,
+                "pattern": "solid"
+              },
+              "border": {
+                "left": "thin",
+                "right": "thin",
+                "top": "medium",
+                "bottom": "medium"
+              },
+              "alignment": {
+                "horizontal": "left",
+                "vertical": "center",
+                "wrap_text": null
+              },
+              "number_format": "General"
+            },
+            {
+              "font": {
+                "name": "Aptos Narrow",
+                "size": 11.0,
+                "bold": false,
+                "italic": false,
+                "color": null
+              },
+              "fill": {
+                "color": null,
+                "pattern": "solid"
+              },
+              "border": {
+                "left": "thin",
+                "right": "thin",
+                "top": "thin",
+                "bottom": "thin"
+              },
+              "alignment": {
+                "horizontal": "left",
+                "vertical": "center",
+                "wrap_text": null
+              },
+              "number_format": "General"
+            }
+          ]
+        }
+      },
+      "column_widths": {
+        "جدول مضامین": {
+          "normalized_header": "جدول مضامین",
+          "width": 13.54296875
+        }
+      },
+      "tables": [],
+      "data_validation": [],
+      "conditional_formatting": [],
+      "merged_cells": [
+        "C3:F4"
+      ],
+      "merged_cell_shapes": [
+        {
+          "rows": 2,
+          "columns": 4
+        }
+      ]
+    },
+    "Sheet2": {
+      "header_row": 4,
+      "total_rows": 15,
+      "data_rows": 11,
+      "total_columns": 1,
+      "columns": [
+        "مشخصات دانش آموزان"
+      ],
+      "normalized_columns": [
+        "مشخصات دانش آموزان"
+      ],
+      "column_metadata": [
+        {
+          "header": "مشخصات دانش آموزان",
+          "normalized_header": "مشخصات دانش آموزان",
+          "column_number": 3,
+          "column_letter": "C",
+          "position": 3
+        }
+      ],
+      "required_columns": [
+        "مشخصات دانش آموزان"
+      ],
+      "data_types": {
+        "مشخصات دانش آموزان": [
+          "integer",
+          "string"
+        ]
+      },
+      "has_formulas": false,
+      "formula_count": 0,
+      "formulas": [],
+      "formula_map": {},
+      "formatting": {
+        "مشخصات دانش آموزان": {
+          "normalized_header": "مشخصات دانش آموزان",
+          "column_letter": "C",
+          "header_format": {
+            "font": {
+              "name": "Aptos Narrow",
+              "size": 16.0,
+              "bold": true,
+              "italic": false,
+              "color": null
+            },
+            "fill": {
+              "color": null,
+              "pattern": "solid"
+            },
+            "border": {
+              "left": null,
+              "right": null,
+              "top": null,
+              "bottom": null
+            },
+            "alignment": {
+              "horizontal": "center",
+              "vertical": "center",
+              "wrap_text": true
+            },
+            "number_format": "General"
+          },
+          "data_formats": [
+            {
+              "font": {
+                "name": "Aptos Narrow",
+                "size": 11.0,
+                "bold": false,
+                "italic": false,
+                "color": null
+              },
+              "fill": {
+                "color": "00000000",
+                "pattern": null
+              },
+              "border": {
+                "left": null,
+                "right": null,
+                "top": null,
+                "bottom": null
+              },
+              "alignment": {
+                "horizontal": null,
+                "vertical": null,
+                "wrap_text": null
+              },
+              "number_format": "General"
+            },
+            {
+              "font": {
+                "name": "Aptos Narrow",
+                "size": 11.0,
+                "bold": false,
+                "italic": false,
+                "color": null
+              },
+              "fill": {
+                "color": "00000000",
+                "pattern": null
+              },
+              "border": {
+                "left": null,
+                "right": null,
+                "top": null,
+                "bottom": null
+              },
+              "alignment": {
+                "horizontal": "left",
+                "vertical": "center",
+                "wrap_text": null
+              },
+              "number_format": "General"
+            }
+          ]
+        }
+      },
+      "column_widths": {
+        "مشخصات دانش آموزان": {
+          "normalized_header": "مشخصات دانش آموزان",
+          "width": 10.1796875
+        }
+      },
+      "tables": [
+        {
+          "name": "Table1",
+          "range": "C6:G15",
+          "start_cell": "C6",
+          "columns": [
+            "شماره حاضری",
+            "Name",
+            "F_Name",
+            "مجموع نمرات ",
+            "Average"
+          ],
+          "normalized_columns": [
+            "شماره حاضری",
+            "name",
+            "f_name",
+            "مجموع نمرات",
+            "average"
+          ],
+          "style": "TableStyleMedium15",
+          "show_header": true,
+          "show_totals": false,
+          "location_strict": false,
+          "name_strict": false
+        }
+      ],
+      "data_validation": [],
+      "conditional_formatting": [],
+      "merged_cells": [
+        "C4:G5"
+      ],
+      "merged_cell_shapes": [
+        {
+          "rows": 2,
+          "columns": 5
+        }
+      ]
+    }
+  }
+}

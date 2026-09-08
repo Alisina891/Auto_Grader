@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>سامانه نمره‌دهی | بال پرواز</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="site-header">
+
+        <div class="school-name">
+            بال پرواز
+        </div>
+
+        <div class="school-line"></div>
+
+        <h1>
+            سامانه نمره‌دهی خودکار
+        </h1>
+
+        <p class="subtitle">
+            بررسی و ارزیابی پروژه‌های دانش‌آموزان
+        </p>
+
+    </header>
+
+
+    <!-- =====================================================
+         INSTRUCTION
+    ====================================================== -->
+
+    <section class="card instruction-card">
+
+        <div class="instruction-icon">
+            📘
+        </div>
+
+        <div class="instruction-content">
+
+            <h2>
+                راهنمای استفاده
+            </h2>
+
+            <p>
+                دانش‌آموز گرامی، برای بررسی پروژه خود ابتدا
+                <strong>نام و تخلص</strong>،
+                <strong>شماره حاضری</strong> و
+                <strong>شماره پروژه</strong> را وارد کنید.
+                سپس فایل Excel پروژه را انتخاب کرده و روی
+                دکمه «بررسی و نمره‌دهی پروژه» کلیک کنید.
+            </p>
+
+            <p>
+                پس از بررسی، نمره شما از
+                <strong>۲۰ نمره</strong>، وضعیت پروژه و
+                بازخورد مربوط به اشتباهات نمایش داده خواهد شد.
+            </p>
+
+            <div class="instruction-note">
+                💡 لطفاً فایل اصلی Excel پروژه را ارسال کنید.
+                فایل PDF یا عکس قابل قبول نیست.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         GRADING FORM
+    ====================================================== -->
+
+    <section class="card">
+
+        <h2>
+            بررسی پروژه
+        </h2>
+
+        <form id="gradeForm">
+
+            <!-- STUDENT NAME -->
+
+            <div class="form-group">
+
+                <label for="studentName">
+                    نام و تخلص
+                </label>
+
+                <input
+                    type="text"
+                    id="studentName"
+                    name="student_name"
+                    placeholder="نام و تخلص خود را وارد کنید"
+                    autocomplete="name"
+                    required
+                >
+
+            </div>
+
+
+            <!-- ATTENDANCE NUMBER -->
+
+            <div class="form-group">
+
+                <label for="attendanceNumber">
+                    شماره حاضری
+                </label>
+
+                <input
+                    type="text"
+                    id="attendanceNumber"
+                    name="attendance_number"
+                    placeholder="شماره حاضری خود را وارد کنید"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+
+            <!-- PROJECT ID -->
+
+            <div class="form-group">
+
+                <label for="projectId">
+                    شماره پروژه
+                </label>
+
+                <input
+                    type="text"
+                    id="projectId"
+                    name="project_id"
+                    placeholder="مثلاً Project_1"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+
+            <!-- GRADE FROM URL -->
+
+            <input
+                type="hidden"
+                id="grade"
+                name="grade"
+            >
+
+
+            <!-- EXCEL FILE -->
+
+            <div class="form-group">
+
+                <label for="excelFile">
+                    فایل پروژه Excel
+                </label>
+
+                <input
+                    type="file"
+                    id="excelFile"
+                    name="file"
+                    accept=".xlsx,.xlsm"
+                    required
+                >
+
+                <small class="file-hint">
+                    فقط فایل Excel پروژه را انتخاب کنید.
+                </small>
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <button
+                type="submit"
+                id="submitButton"
+            >
+                بررسی و نمره‌دهی پروژه
+            </button>
+
+        </form>
+
+
+        <!-- =================================================
+             LOADING
+        ================================================== -->
+
+        <div id="loading" class="hidden">
+
+            <div class="loading-spinner"></div>
+
+            <strong>
+                در حال بررسی پروژه...
+            </strong>
+
+            <span>
+                لطفاً چند لحظه صبر کنید.
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RESULT
+    ====================================================== -->
+
+    <section
+        id="result"
+        class="card hidden"
+    >
+
+        <h2>
+            نتیجه پروژه
+        </h2>
+
+
+        <!-- SCORE -->
+
+        <div class="score-box">
+
+            <div class="score-label">
+                نمره شما
+            </div>
+
+            <div class="score-value">
+
+                <strong id="score">
+                    -
+                </strong>
+
+                <span>
+                    / 20
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div class="result-item">
+
+            <strong>
+                وضعیت پروژه
+            </strong>
+
+            <span id="status">
+                -
+            </span>
+
+        </div>
+
+
+        <!-- FEEDBACK -->
+
+        <div class="result-item feedback-result">
+
+            <strong>
+                بازخورد پروژه
+            </strong>
+
+            <div id="feedback">
+                -
+            </div>
+
+        </div>
+
+
+        <!-- GOOGLE DRIVE -->
+
+        <div
+            id="driveSection"
+            class="result-item hidden"
+        >
+
+            <strong>
+                فایل ثبت‌شده پروژه
+            </strong>
+
+            <a
+                id="driveLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                مشاهده فایل پروژه
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <p>
+            بال پرواز
+        </p>
+
+        <span>
+            سامانه هوشمند نمره‌دهی پروژه‌ها
+        </span>
+
+    </footer>
+
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script src="/static/app.js?v=2"></script>
+
+</body>
+
+</html>
