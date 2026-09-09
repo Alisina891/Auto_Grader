@@ -15,6 +15,7 @@ from fastapi import (
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 
 from google_services.sheets_service import save_student_result
@@ -38,6 +39,14 @@ app = FastAPI(
     title="Auto Grader API",
     description="Flexible educational project grading system",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
