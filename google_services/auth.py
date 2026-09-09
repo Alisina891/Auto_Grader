@@ -1,6 +1,6 @@
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.oauth2.credentials import Credentials
 import os
+import json
+from google.oauth2 import service_account
 
 
 SCOPES = [
@@ -8,36 +8,28 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.file"
 ]
 
-CREDENTIALS_FILE = "credentials/credentials.json"
-TOKEN_FILE = "credentials/token.json"
-
 
 def get_credentials():
+    """
+    Get Google credentials from Render environment variable.
+    """
 
-    creds = None
+    credentials_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
-    if os.path.exists(TOKEN_FILE):
-
-        creds = Credentials.from_authorized_user_file(
-            TOKEN_FILE,
-            SCOPES
+    if not credentials_json:
+        raise RuntimeError(
+            "GOOGLE_SERVICE_ACCOUNT_JSON environment variable is not set."
         )
 
-    if not creds or not creds.valid:
+    try:
+        credentials_info = json.loads(credentials_json)
 
-        flow = InstalledAppFlow.from_client_secrets_file(
-            CREDENTIALS_FILE,
-            SCOPES
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            f"Invalid GOOGLE_SERVICE_ACCOUNT_JSON: {e}"
         )
 
-        creds = flow.run_local_server(
-            port=0
-        )
-
-        with open(TOKEN_FILE, "w") as token:
-
-            token.write(
-                creds.to_json()
-            )
-
-    return creds
+    return service_account.Credentials.from_service_account_info(
+        credentials_info,
+        scopes=SCOPES
+    )
