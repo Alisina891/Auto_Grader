@@ -118,6 +118,41 @@ export default function StudentGrader({
       .join("\n");
   }
 
+  function getFriendlyErrorMessage(message: string): string {
+    const lowerMessage = message.toLowerCase();
+
+    const duplicateEmail =
+      lowerMessage.includes("email") &&
+      (
+        lowerMessage.includes("already") ||
+        lowerMessage.includes("exist") ||
+        lowerMessage.includes("duplicate") ||
+        lowerMessage.includes("registered") ||
+        lowerMessage.includes("submitted")
+      );
+
+    if (duplicateEmail) {
+      return "شما قبلاً ثبت کرده‌اید؛ دیگر اجازه ارسال پروژه ندارید.";
+    }
+
+    const duplicateSubmission =
+      lowerMessage.includes("already submitted") ||
+      lowerMessage.includes("already graded") ||
+      lowerMessage.includes("duplicate submission");
+
+    if (duplicateSubmission) {
+      return (
+        "این پروژه قبلاً با مشخصات شما ثبت شده است و " +
+        "دیگر اجازه ارسال مجدد ندارید."
+      );
+    }
+
+    return (
+      "در هنگام بررسی پروژه مشکلی به وجود آمد. " +
+      "لطفاً کمی بعد دوباره تلاش کنید."
+    );
+  }
+
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
   ) {
@@ -199,10 +234,12 @@ export default function StudentGrader({
       setResult(data);
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(
+          getFriendlyErrorMessage(err.message)
+        );
       } else {
         setError(
-          "در بررسی پروژه مشکلی به وجود آمد."
+          "در هنگام بررسی پروژه مشکلی به وجود آمد. لطفاً کمی بعد دوباره تلاش کنید."
         );
       }
     } finally {
@@ -236,8 +273,11 @@ export default function StudentGrader({
       dir="rtl"
       className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-800"
     >
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[650px] overflow-hidden">
+      {/* =====================================================
+          BACKGROUND
+      ====================================================== */}
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[680px] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -245,14 +285,17 @@ export default function StudentGrader({
           }}
         />
 
-        <div className="absolute inset-0 bg-slate-950/45" />
+        <div className="absolute inset-0 bg-slate-950/50" />
 
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/70 via-blue-900/35 to-indigo-900/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/75 via-blue-900/40 to-indigo-900/65" />
 
-        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-slate-50 via-slate-50/85 to-transparent" />
       </div>
 
-      {/* Decorative background */}
+      {/* =====================================================
+          DECORATIVE BACKGROUND
+      ====================================================== */}
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -right-32 top-[420px] h-80 w-80 rounded-full bg-cyan-300/20 blur-3xl" />
 
@@ -270,10 +313,16 @@ export default function StudentGrader({
         />
       </div>
 
-      {/* Main container */}
+      {/* =====================================================
+          MAIN CONTAINER
+      ====================================================== */}
+
       <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
-        {/* Header */}
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+
         <header className="mb-8 text-center">
           <div className="mx-auto max-w-3xl">
 
@@ -301,9 +350,9 @@ export default function StudentGrader({
               سامانه نمره‌دهی خودکار
             </h1>
 
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-white/90 sm:text-base">
               فایل پروژه Excel خود را ارسال کنید تا سیستم به‌صورت
-              خودکار پروژه را بررسی، نمره‌دهی و نتیجه را نمایش دهد.
+              خودکار پروژه شما را بررسی، نمره‌دهی و نتیجه را نمایش دهد.
             </p>
 
             <div className="mt-6 flex justify-center">
@@ -316,7 +365,42 @@ export default function StudentGrader({
           </div>
         </header>
 
-        {/* Instructions */}
+        {/* ===================================================
+            STARTUP NOTICE
+        ==================================================== */}
+
+        <section className="mb-6 overflow-hidden rounded-3xl border border-amber-200/80 bg-amber-50/95 p-5 shadow-xl shadow-amber-200/20 backdrop-blur-xl sm:p-6">
+
+          <div className="flex items-start gap-4">
+
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-2xl">
+              ⏳
+            </div>
+
+            <div>
+              <h2 className="font-black text-amber-900">
+                لطفاً کمی صبر کنید
+              </h2>
+
+              <p className="mt-2 text-sm leading-7 text-amber-800">
+                ممکن است سیستم در اولین درخواست تا حدود یک دقیقه
+                زمان نیاز داشته باشد تا آماده شود و پروژه شما را
+                بررسی کند.
+              </p>
+
+              <p className="mt-2 text-sm font-bold leading-7 text-amber-900">
+                اگر در حال حاضر خطایی دریافت کردید، لطفاً کمی بعد
+                دوباره تلاش کنید.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ===================================================
+            INSTRUCTIONS
+        ==================================================== */}
+
         <section className="mb-6 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-xl shadow-slate-300/30 backdrop-blur-xl sm:p-6">
 
           <div className="flex items-start gap-4">
@@ -337,12 +421,12 @@ export default function StudentGrader({
                 </li>
 
                 <li>
-                  • عکس یا PDF قابل قبول نیست.
+                  • عکس یا فایل PDF قابل قبول نیست.
                 </li>
 
                 <li>
-                  • فایل باید با فرمت <b>.xlsx</b> یا{" "}
-                  <b>.xlsm</b> باشد.
+                  • فایل باید با فرمت <b dir="ltr">.xlsx</b> یا{" "}
+                  <b dir="ltr">.xlsm</b> باشد.
                 </li>
 
                 <li>
@@ -354,13 +438,20 @@ export default function StudentGrader({
                   • ایمیل معتبر خود را وارد کنید.
                 </li>
 
+                <li>
+                  • هر ایمیل فقط برای یک ارسال پروژه قابل استفاده است.
+                </li>
+
               </ul>
             </div>
 
           </div>
         </section>
 
-        {/* Form */}
+        {/* ===================================================
+            FORM
+        ==================================================== */}
+
         <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-5 shadow-2xl shadow-slate-300/40 backdrop-blur-xl sm:p-8">
 
           <div className="mb-8">
@@ -368,8 +459,8 @@ export default function StudentGrader({
               ارسال پروژه
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
-              معلومات خود را وارد کرده و فایل Excel را انتخاب کنید.
+            <p className="mt-2 text-sm leading-7 text-slate-500">
+              معلومات خود را وارد کرده و فایل Excel پروژه را انتخاب کنید.
             </p>
           </div>
 
@@ -379,6 +470,7 @@ export default function StudentGrader({
           >
 
             {/* Student Name */}
+
             <div>
               <label
                 htmlFor="studentName"
@@ -401,6 +493,7 @@ export default function StudentGrader({
             </div>
 
             {/* Attendance Number */}
+
             <div>
               <label
                 htmlFor="attendanceNumber"
@@ -423,6 +516,7 @@ export default function StudentGrader({
             </div>
 
             {/* Email */}
+
             <div>
               <label
                 htmlFor="email"
@@ -445,11 +539,12 @@ export default function StudentGrader({
               />
 
               <p className="mt-2 text-xs leading-6 text-slate-400">
-                ایمیل برای ثبت نتیجه پروژه استفاده می‌شود.
+                هر ایمیل فقط یک بار برای ارسال پروژه قابل استفاده است.
               </p>
             </div>
 
             {/* Project ID */}
+
             <div>
               <label
                 htmlFor="projectId"
@@ -465,12 +560,13 @@ export default function StudentGrader({
                 onChange={(e) =>
                   setProjectId(e.target.value)
                 }
-                placeholder="مثلاً Project-01"
+                placeholder="مثلاً ۱"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
             {/* Excel File */}
+
             <div>
               <label
                 htmlFor="excelFile"
@@ -495,7 +591,7 @@ export default function StudentGrader({
                 </p>
 
                 <p className="mt-2 text-xs text-slate-500">
-                  فقط .xlsx و .xlsm
+                  فقط فایل‌های Excel با فرمت .xlsx و .xlsm
                 </p>
 
                 <input
@@ -516,6 +612,7 @@ export default function StudentGrader({
             </div>
 
             {/* Error */}
+
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold leading-7 text-red-700">
 
@@ -535,6 +632,7 @@ export default function StudentGrader({
             )}
 
             {/* Submit */}
+
             <button
               type="submit"
               disabled={loading}
@@ -568,11 +666,15 @@ export default function StudentGrader({
           </form>
         </section>
 
-        {/* Result */}
+        {/* ===================================================
+            RESULT
+        ==================================================== */}
+
         {result && (
           <section className="mt-8 overflow-hidden rounded-[2rem] border border-white/80 bg-white/95 shadow-2xl shadow-slate-300/40 backdrop-blur-xl">
 
-            {/* Result header */}
+            {/* Result Header */}
+
             <div className="relative overflow-hidden bg-gradient-to-l from-slate-950 via-blue-950 to-indigo-900 px-6 py-8 text-center text-white sm:px-10">
 
               <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-cyan-400/20 blur-3xl" />
@@ -598,10 +700,12 @@ export default function StudentGrader({
 
             <div className="p-5 sm:p-8">
 
-              {/* Score cards */}
+              {/* Score Cards */}
+
               <div className="grid gap-5 sm:grid-cols-3">
 
                 {/* Score */}
+
                 <div className="rounded-3xl border border-blue-100 bg-blue-50 p-6 text-center">
 
                   <p className="text-sm font-bold text-blue-700">
@@ -625,6 +729,7 @@ export default function StudentGrader({
                 </div>
 
                 {/* Percentage */}
+
                 <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 text-center">
 
                   <p className="text-sm font-bold text-emerald-700">
@@ -652,6 +757,7 @@ export default function StudentGrader({
                 </div>
 
                 {/* Status */}
+
                 <div className="rounded-3xl border border-indigo-100 bg-indigo-50 p-6 text-center">
 
                   <p className="text-sm font-bold text-indigo-700">
@@ -683,6 +789,7 @@ export default function StudentGrader({
               </div>
 
               {/* Checks */}
+
               {result.checks && (
                 <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-6">
 
@@ -720,6 +827,7 @@ export default function StudentGrader({
               )}
 
               {/* Feedback */}
+
               <div className="mt-6 rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50 p-6">
 
                 <div className="flex items-center gap-3">
@@ -747,6 +855,7 @@ export default function StudentGrader({
               </div>
 
               {/* Google Drive */}
+
               {result.google_drive?.uploaded && (
                 <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
 
@@ -765,7 +874,7 @@ export default function StudentGrader({
                         </h3>
 
                         <p className="mt-1 text-xs text-emerald-700">
-                          پروژه شما در Google Drive ذخیره شده است.
+                          پروژه شما با موفقیت در Google Drive ذخیره شد.
                         </p>
 
                       </div>
@@ -794,7 +903,10 @@ export default function StudentGrader({
           </section>
         )}
 
-        {/* Footer */}
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
+
         <footer className="py-10 text-center">
 
           <div className="mb-3 text-2xl">
@@ -819,7 +931,10 @@ export default function StudentGrader({
 
       </div>
 
-      {/* Global styles */}
+      {/* =====================================================
+          GLOBAL STYLES
+      ====================================================== */}
+
       <style jsx global>{`
         html {
           scroll-behavior: smooth;
