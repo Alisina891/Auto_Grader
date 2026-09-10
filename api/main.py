@@ -18,8 +18,15 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from google_services.sheets_service import save_student_result
-from google_services.drive_service import upload_file_to_drive
+from google_services.sheets_service import (
+    save_student_result,
+    email_exists,
+)
+from google_services.drive_service import (
+    upload_file_to_drive,
+    get_student_grade_folder,
+    get_master_project_folder,
+)
 
 
 from analyzer.excel_analyzer import extract_full_rules
@@ -207,6 +214,11 @@ async def grade_excel(
     attendance_number: str = Query(
         ...,
         description="Student attendance number"
+    ),
+
+    email: str = Query(
+    ...,
+    description="Student email"
     )
 ):
     """
@@ -243,6 +255,10 @@ async def grade_excel(
         attendance_number
     ).strip()
 
+    email = str(
+        email
+    ).strip().lower()
+
     project_id = str(
         project_id
     ).strip()
@@ -270,6 +286,20 @@ async def grade_excel(
         )
 
 
+    # -----------------------------------------------------
+    # CHECK DUPLICATE EMAIL
+    # -----------------------------------------------------
+
+    if email_exists(email):
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This email has already been used "
+                "to submit a project. "
+                "Another submission is not allowed."
+            )
+      )
     # -----------------------------------------------------
     # VALIDATE PROJECT ID
     # -----------------------------------------------------
@@ -424,9 +454,15 @@ async def grade_excel(
 
     try:
 
+        grade_folder = get_student_grade_folder(
+            project_id=project_id,
+            grade=grade
+        )
+
         drive_file = upload_file_to_drive(
             file_path=str(file_path),
-            file_name=file.filename
+            file_name=file.filename,
+            folder_id=grade_folder["id"]
         )
 
         print(
@@ -528,6 +564,8 @@ async def grade_excel(
 
             student_name=student_name,
 
+            email=email,
+
             attendance_number=attendance_number,
 
             grade=grade,
@@ -559,6 +597,29 @@ async def grade_excel(
 
 
     # -----------------------------------------------------
+# DELETE TEMPORARY STUDENT FILE
+# -----------------------------------------------------
+
+    if file_path.exists():
+
+        try:
+
+            file_path.unlink()
+
+            print(
+                f"🗑️ Temporary student file deleted: "
+                f"{file_path.name}"
+            )
+
+        except Exception as e:
+
+            print(
+                "⚠️ Could not delete temporary "
+                f"student file: {e}"
+            )
+
+
+    # -----------------------------------------------------
     # RETURN RESULT TO FRONTEND
     # -----------------------------------------------------
 
@@ -567,6 +628,8 @@ async def grade_excel(
         "success": True,
 
         "student_name": student_name,
+
+        "email": email,
 
         "attendance_number": attendance_number,
 
@@ -784,9 +847,14 @@ async def create_project(
 
     try:
 
+        master_folder = get_master_project_folder(
+            project_id
+        )
+
         drive_file = upload_file_to_drive(
             file_path=str(file_path),
-            file_name=file.filename
+            file_name="master.xlsx",
+            folder_id=master_folder["id"]
         )
 
         print(
@@ -800,6 +868,27 @@ async def create_project(
             f"{e}"
         )
 
+    # -----------------------------------------------------
+# DELETE TEMPORARY MASTER FILE
+# -----------------------------------------------------
+
+    if file_path.exists():
+
+        try:
+
+            file_path.unlink()
+
+            print(
+                f"🗑️ Temporary master file deleted: "
+                f"{file_path.name}"
+            )
+
+        except Exception as e:
+
+            print(
+                "⚠️ Could not delete temporary "
+                f"master file: {e}"
+            )
 
     return {
 

@@ -436,7 +436,11 @@ else {
                 document.getElementById(
                     "studentName"
                 );
-
+            
+            const emailInput =
+            document.getElementById(
+                "email"
+            );
 
             const attendanceInput =
                 document.getElementById(
@@ -461,7 +465,11 @@ else {
                     ? studentNameInput.value.trim()
                     : "";
 
-
+            
+            const email =
+                emailInput
+                    ? emailInput.value.trim().toLowerCase()
+                    : "";
             const attendanceNumber =
                 attendanceInput
                     ? attendanceInput.value.trim()
@@ -508,6 +516,41 @@ else {
                 if (studentNameInput) {
 
                     studentNameInput.focus();
+                }
+
+                return;
+            }
+
+            // ------------------------------------------------
+// Validate email
+// ------------------------------------------------
+
+            if (!email) {
+
+                alert(
+                    "لطفاً ایمیل خود را وارد کنید."
+                );
+
+                if (emailInput) {
+                    emailInput.focus();
+                }
+
+                return;
+            }
+
+
+            const emailPattern =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+            if (!emailPattern.test(email)) {
+
+                alert(
+                    "لطفاً یک ایمیل معتبر وارد کنید."
+                );
+
+                if (emailInput) {
+                    emailInput.focus();
                 }
 
                 return;
@@ -659,6 +702,7 @@ else {
                     `/grade/${encodeURIComponent(grade)}/excel` +
                     `?project_id=${encodeURIComponent(projectId)}` +
                     `&student_name=${encodeURIComponent(studentName)}` +
+                    `&email=${encodeURIComponent(email)}` +
                     `&attendance_number=${encodeURIComponent(attendanceNumber)}`;
 
 

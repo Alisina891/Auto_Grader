@@ -27,6 +27,7 @@ def get_service():
 
 def save_student_result(
     student_name,
+    email,
     attendance_number,
     grade,
     project_id,
@@ -41,13 +42,14 @@ def save_student_result(
     Columns:
 
     A = Student Name
-    B = Attendance Number
-    C = Grade
-    D = Project ID
-    E = Score
-    F = Max Score
-    G = Status
-    H = Feedback
+    B = Email
+    C = Attendance Number
+    D = Grade
+    E = Project ID
+    F = Score
+    G = Max Score
+    H = Status
+    I = Feedback
 
     The score is calculated by the grading engine.
     AI feedback does not calculate or modify the score.
@@ -57,6 +59,7 @@ def save_student_result(
 
     # Make sure all values are safe for Google Sheets
     student_name = str(student_name).strip()
+    email = str(email).strip().lower()
     attendance_number = str(attendance_number).strip()
     grade = str(grade).strip().upper()
     project_id = str(project_id).strip()
@@ -68,6 +71,7 @@ def save_student_result(
 
     row = [
         student_name,
+        email,
         attendance_number,
         grade,
         project_id,
@@ -83,7 +87,7 @@ def save_student_result(
 
     service.spreadsheets().values().append(
         spreadsheetId=SPREADSHEET_ID,
-        range="Sheet1!A:H",
+        range="Sheet1!A:I",
         valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body=body
@@ -99,6 +103,38 @@ def save_student_result(
     )
 
 
+def email_exists(email):
+    """
+    Check whether an email already exists in Google Sheets.
+
+    Email is stored in column B.
+    Returns:
+        True  -> email already exists
+        False -> email does not exist
+    """
+
+    service = get_service()
+
+    email = str(email).strip().lower()
+
+    result = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range="Sheet1!B:B"
+    ).execute()
+
+    values = result.get("values", [])
+
+    for row in values:
+        if row:
+            existing_email = str(row[0]).strip().lower()
+
+            if existing_email == email:
+                return True
+
+    return False
+
+
+
 # ---------------------------------------------------------
 # Test
 # ---------------------------------------------------------
@@ -107,6 +143,7 @@ if __name__ == "__main__":
 
     save_student_result(
         student_name="Ali",
+        email="ali@example.com",
         attendance_number="01",
         grade="10A",
         project_id="project_1",

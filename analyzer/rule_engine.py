@@ -2,6 +2,12 @@ import json
 import os
 from collections import Counter
 
+from google_services.drive_service import (
+    get_master_project_folder,
+    upload_json_to_drive,
+    download_json_from_drive,
+)
+
 from analyzer.scoring_engine import (
     MAX_SCORE,
     get_score_status,
@@ -16,7 +22,7 @@ from analyzer.feedback_engine import (
 from analyzer.report_generator import save_report_json
 
 
-MASTER_RULES_FOLDER = "master_rules"
+
 
 PASSING_SCORE = 12
 
@@ -70,65 +76,63 @@ def _normalize_formula(formula):
 # MASTER RULES
 # ============================================================
 
-def save_master_rules(
-    rules,
-    project_id
-):
+def save_master_rules(rules, project_id):
+    """
+    Save master rules directly to Google Drive.
 
-    os.makedirs(
-        MASTER_RULES_FOLDER,
-        exist_ok=True
+    Structure:
+
+        Auto_Grader
+        └── Master_Projects
+            └── Project_X
+                └── master_rules.json
+    """
+
+    project_folder = get_master_project_folder(project_id)
+
+    uploaded_file = upload_json_to_drive(
+        data=rules,
+        file_name="master_rules.json",
+        folder_id=project_folder["id"]
     )
-
-    filename = os.path.join(
-        MASTER_RULES_FOLDER,
-        f"project_{project_id}.json"
-    )
-
-    with open(
-        filename,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            rules,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
 
     print(
-        f"✅ Master rules saved for Project "
-        f"{project_id}"
+        f"✅ Master rules saved to Google Drive "
+        f"for Project {project_id}"
     )
 
-    return filename
+    return uploaded_file
 
 
-def load_master_rules(
-    project_id
-):
+def load_master_rules(project_id):
+    """
+    Load master rules directly from Google Drive.
 
-    filename = os.path.join(
-        MASTER_RULES_FOLDER,
-        f"project_{project_id}.json"
+    Returns:
+        Dictionary containing master rules,
+        or None if the rules don't exist.
+    """
+
+    project_folder = get_master_project_folder(project_id)
+
+    rules = download_json_from_drive(
+        file_name="master_rules.json",
+        folder_id=project_folder["id"]
     )
 
-    if not os.path.exists(
-        filename
-    ):
-
+    if rules is None:
+        print(
+            f"⚠️ No master rules found for "
+            f"Project {project_id}"
+        )
         return None
 
-    with open(
-        filename,
-        "r",
-        encoding="utf-8"
-    ) as f:
+    print(
+        f"✅ Master rules loaded from Google Drive "
+        f"for Project {project_id}"
+    )
 
-        return json.load(f)
-
+    return rules
 
 # ============================================================
 # COLUMN MATCHING
