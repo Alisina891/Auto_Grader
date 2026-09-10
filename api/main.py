@@ -429,7 +429,7 @@ async def grade_excel(
     # -----------------------------------------------------
 
     try:
-
+        
         result = compare_structure(
             student_rules,
             master_rules

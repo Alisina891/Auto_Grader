@@ -120,6 +120,13 @@ def load_master_rules(project_id):
         folder_id=project_folder["id"]
     )
 
+    print("========== RAW MASTER RULES ==========")
+    print("TYPE:", type(rules))
+    print("KEYS:", list(rules.keys()) if isinstance(rules, dict) else "NOT DICT")
+    print("DATA:")
+    print(rules)
+    print("=======================================")
+
     if rules is None:
         print(
             f"⚠️ No master rules found for "
@@ -2786,6 +2793,9 @@ if __name__ == "__main__":
     # COMPARE
     # --------------------------------------------------------
 
+
+
+    
     result = compare_structure(
 
         student_rules,

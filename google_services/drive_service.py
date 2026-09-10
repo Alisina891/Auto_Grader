@@ -1,8 +1,13 @@
 import io
 import re
+import json
 
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
+from googleapiclient.http import (
+    MediaFileUpload,
+    MediaIoBaseUpload
+)
+from google.auth.transport.requests import AuthorizedSession
 
 from google_services.auth import get_credentials
 
@@ -61,8 +66,13 @@ def find_item(name, parent_id=None, mime_type=None):
 
     name = safe_name(name)
 
+    escaped_name = name.replace(
+        "'",
+        "\\'"
+    )
+
     query_parts = [
-        f"name = '{name.replace(chr(39), chr(92) + chr(39))}'",
+        f"name = '{escaped_name}'",
         "trashed = false"
     ]
 
@@ -81,7 +91,17 @@ def find_item(name, parent_id=None, mime_type=None):
     result = service.files().list(
         q=query,
         spaces="drive",
-        fields="files(id, name, mimeType, parents, webViewLink)",
+        fields=(
+            "files("
+            "id,"
+            "name,"
+            "mimeType,"
+            "parents,"
+            "size,"
+            "modifiedTime,"
+            "webViewLink"
+            ")"
+        ),
         pageSize=10
     ).execute()
 
@@ -101,7 +121,7 @@ def create_folder(folder_name, parent_id=None):
     """
     Create a Google Drive folder.
 
-    If the folder already exists, return the existing folder.
+    If the folder already exists, return it.
     """
 
     service = get_drive_service()
@@ -127,7 +147,7 @@ def create_folder(folder_name, parent_id=None):
 
     folder = service.files().create(
         body=metadata,
-        fields="id, name, mimeType, parents, webViewLink"
+        fields="id,name,mimeType,parents,webViewLink"
     ).execute()
 
     print(
@@ -139,7 +159,7 @@ def create_folder(folder_name, parent_id=None):
 
 
 # ============================================================
-# GET PROJECT FOLDERS
+# GET MASTER PROJECT FOLDER
 # ============================================================
 
 def get_master_project_folder(project_id):
@@ -151,7 +171,9 @@ def get_master_project_folder(project_id):
                 └── Project_X
     """
 
-    root = create_folder("Auto_Grader")
+    root = create_folder(
+        "Auto_Grader"
+    )
 
     master_projects = create_folder(
         "Master_Projects",
@@ -166,6 +188,10 @@ def get_master_project_folder(project_id):
     return project_folder
 
 
+# ============================================================
+# GET STUDENT PROJECT FOLDER
+# ============================================================
+
 def get_student_project_folder(project_id):
     """
     Get:
@@ -175,7 +201,9 @@ def get_student_project_folder(project_id):
                 └── Project_X
     """
 
-    root = create_folder("Auto_Grader")
+    root = create_folder(
+        "Auto_Grader"
+    )
 
     student_projects = create_folder(
         "Student_Projects",
@@ -189,6 +217,10 @@ def get_student_project_folder(project_id):
 
     return project_folder
 
+
+# ============================================================
+# GET STUDENT GRADE FOLDER
+# ============================================================
 
 def get_student_grade_folder(project_id, grade):
     """
@@ -223,12 +255,6 @@ def upload_file_to_drive(
 ):
     """
     Upload a local file to Google Drive.
-
-    Returns:
-        Dictionary containing:
-            id
-            name
-            webViewLink
     """
 
     service = get_drive_service()
@@ -250,7 +276,7 @@ def upload_file_to_drive(
     uploaded_file = service.files().create(
         body=file_metadata,
         media_body=media,
-        fields="id, name, webViewLink, parents"
+        fields="id,name,mimeType,size,webViewLink,parents"
     ).execute()
 
     print(
@@ -267,7 +293,7 @@ def upload_file_to_drive(
 
 
 # ============================================================
-# UPLOAD JSON DIRECTLY TO DRIVE
+# UPLOAD JSON TO DRIVE
 # ============================================================
 
 def upload_json_to_drive(
@@ -276,12 +302,8 @@ def upload_json_to_drive(
     folder_id=None
 ):
     """
-    Upload JSON data directly to Google Drive.
-
-    No temporary JSON file is created on Render.
+    Upload or update JSON data in Google Drive.
     """
-
-    import json
 
     service = get_drive_service()
 
@@ -293,57 +315,89 @@ def upload_json_to_drive(
         indent=2
     )
 
+    json_bytes = json_data.encode("utf-8")
+
+    print()
+    print("========== SAVING JSON TO DRIVE ==========")
+    print("FILE:", file_name)
+    print("FOLDER:", folder_id)
+    print("JSON SIZE:", len(json_bytes))
+    print("==========================================")
+
     media = MediaIoBaseUpload(
-        io.BytesIO(
-            json_data.encode("utf-8")
-        ),
+        io.BytesIO(json_bytes),
         mimetype="application/json",
-        resumable=True
+        resumable=False
     )
 
     existing = find_item(
         name=file_name,
-        parent_id=folder_id
+        parent_id=folder_id,
+        mime_type="application/json"
     )
-
-    file_metadata = {
-        "name": file_name
-    }
-
-    if folder_id:
-        file_metadata["parents"] = [folder_id]
 
     if existing:
 
-        uploaded_file = service.files().update(
-            fileId=existing["id"],
-            media_body=media,
-            fields="id, name, webViewLink, parents"
-        ).execute()
-
         print(
-            f"🔄 Updated Google Drive JSON: "
-            f"{file_name}"
+            f"🔄 Updating existing JSON file: "
+            f"{existing['id']}"
         )
 
+        uploaded_file = service.files().update(
+            fileId=existing["id"],
+            body={
+                "name": file_name,
+                "mimeType": "application/json"
+            },
+            media_body=media,
+            fields=(
+                "id,"
+                "name,"
+                "mimeType,"
+                "size,"
+                "parents,"
+                "webViewLink"
+            )
+        ).execute()
+
     else:
+
+        print("➕ Creating new JSON file")
+
+        file_metadata = {
+            "name": file_name,
+            "mimeType": "application/json"
+        }
+
+        if folder_id:
+            file_metadata["parents"] = [folder_id]
 
         uploaded_file = service.files().create(
             body=file_metadata,
             media_body=media,
-            fields="id, name, webViewLink, parents"
+            fields=(
+                "id,"
+                "name,"
+                "mimeType,"
+                "size,"
+                "parents,"
+                "webViewLink"
+            )
         ).execute()
 
-        print(
-            f"✅ Uploaded Google Drive JSON: "
-            f"{file_name}"
-        )
+    print()
+    print("========== DRIVE JSON SAVED ==========")
+    print("ID:", uploaded_file.get("id"))
+    print("NAME:", uploaded_file.get("name"))
+    print("MIME:", uploaded_file.get("mimeType"))
+    print("SIZE:", uploaded_file.get("size"))
+    print("======================================")
 
     return uploaded_file
 
 
 # ============================================================
-# DOWNLOAD JSON FROM DRIVE
+# DOWNLOAD JSON CONTENT
 # ============================================================
 
 def download_json_from_drive(
@@ -351,46 +405,269 @@ def download_json_from_drive(
     folder_id=None
 ):
     """
-    Read a JSON file directly from Google Drive.
+    Download actual JSON content from Google Drive.
 
-    Returns:
-        Python dictionary
-        or None if the file does not exist.
+    This uses an authenticated HTTP session instead of
+    googleapiclient's media execute() because the latter was
+    returning Drive metadata in this project.
     """
 
-    import json
+    file_name = safe_name(file_name)
 
-    service = get_drive_service()
+    print()
+    print("==========================================")
+    print("📥 DOWNLOADING JSON FROM GOOGLE DRIVE")
+    print("FILE:", file_name)
+    print("FOLDER:", folder_id)
+    print("==========================================")
+
+    # --------------------------------------------------------
+    # FIND FILE
+    # --------------------------------------------------------
 
     file_info = find_item(
         name=file_name,
-        parent_id=folder_id
+        parent_id=folder_id,
+        mime_type="application/json"
     )
 
     if not file_info:
+
         print(
             f"⚠️ Google Drive JSON not found: "
             f"{file_name}"
         )
+
         return None
 
-    content = service.files().get(
-        fileId=file_info["id"],
-        alt="media"
-    ).execute()
+    file_id = file_info["id"]
 
-    if isinstance(content, bytes):
-        content = content.decode("utf-8")
+    print("FILE ID:", file_id)
+    print("FILE NAME:", file_info.get("name"))
+    print("FILE MIME:", file_info.get("mimeType"))
+    print("FILE SIZE:", file_info.get("size"))
+    print("FILE PARENTS:", file_info.get("parents"))
 
-    if isinstance(content, dict):
-        data = content
-    else:
-        data = json.loads(content)
+    # --------------------------------------------------------
+    # GET CREDENTIALS
+    # --------------------------------------------------------
 
-    print(
-        f"✅ Loaded JSON from Google Drive: "
-        f"{file_name}"
+    creds = get_credentials()
+
+    # --------------------------------------------------------
+    # AUTHENTICATED SESSION
+    # --------------------------------------------------------
+
+    session = AuthorizedSession(
+        creds
     )
+
+    url = (
+        "https://www.googleapis.com/drive/v3/files/"
+        + file_id
+    )
+
+    print()
+    print("REQUEST URL:")
+    print(url)
+
+    # --------------------------------------------------------
+    # DOWNLOAD ACTUAL FILE CONTENT
+    # --------------------------------------------------------
+
+    response = session.get(
+        url,
+        params={
+            "alt": "media"
+        }
+    )
+
+    print()
+    print("========== DRIVE RESPONSE ==========")
+    print("STATUS:", response.status_code)
+    print("CONTENT TYPE:", response.headers.get("content-type"))
+    print("CONTENT LENGTH:", len(response.content))
+    print("====================================")
+
+    if response.status_code != 200:
+
+        print(
+            "❌ Google Drive download failed."
+        )
+
+        print(
+            "RESPONSE:",
+            response.text[:1000]
+        )
+
+        return None
+
+    content = response.content
+
+    # --------------------------------------------------------
+    # DEBUG RAW CONTENT
+    # --------------------------------------------------------
+
+    print()
+    print("========== RAW JSON DOWNLOAD ==========")
+    print(
+        content[:500].decode(
+            "utf-8",
+            errors="replace"
+        )
+    )
+    print("========================================")
+
+    # --------------------------------------------------------
+    # DECODE UTF-8
+    # --------------------------------------------------------
+
+    try:
+
+        text = content.decode(
+            "utf-8"
+        )
+
+    except UnicodeDecodeError as e:
+
+        print(
+            f"❌ UTF-8 decoding failed: {e}"
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # PARSE JSON
+    # --------------------------------------------------------
+
+    try:
+
+        data = json.loads(
+            text
+        )
+
+    except json.JSONDecodeError as e:
+
+        print()
+        print(
+            f"❌ JSON parsing failed: {e}"
+        )
+
+        print(
+            "CONTENT:",
+            text[:1000]
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # VERIFY DICTIONARY
+    # --------------------------------------------------------
+
+    if not isinstance(data, dict):
+
+        print(
+            "❌ Downloaded JSON is not a dictionary."
+        )
+
+        print(
+            "TYPE:",
+            type(data)
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # VERIFY MASTER RULE STRUCTURE
+    # --------------------------------------------------------
+
+    required_keys = [
+        "file_name",
+        "total_sheets",
+        "sheet_names",
+        "sheets"
+    ]
+
+    missing = [
+        key
+        for key in required_keys
+        if key not in data
+    ]
+
+    if missing:
+
+        print()
+        print("❌ INVALID MASTER RULES")
+        print("Missing:", missing)
+        print("Actual keys:", list(data.keys()))
+        print()
+
+        # This is useful for catching the old problem.
+        if set(data.keys()) == {
+            "kind",
+            "id",
+            "name",
+            "mimeType"
+        }:
+
+            print(
+                "⚠️ WARNING:"
+            )
+
+            print(
+                "Google Drive metadata was returned "
+                "instead of JSON content."
+            )
+
+        return None
+
+    # --------------------------------------------------------
+    # VERIFY SHEETS
+    # --------------------------------------------------------
+
+    if not isinstance(
+        data.get("sheets"),
+        dict
+    ):
+
+        print(
+            "❌ Invalid 'sheets' structure."
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # SUCCESS
+    # --------------------------------------------------------
+
+    print()
+    print("========== MASTER RULES LOADED ==========")
+    print(
+        "FILE:",
+        data.get("file_name")
+    )
+    print(
+        "TOTAL SHEETS:",
+        data.get("total_sheets")
+    )
+    print(
+        "SHEET NAMES:",
+        data.get("sheet_names")
+    )
+    print(
+        "SHEETS:",
+        list(
+            data.get(
+                "sheets",
+                {}
+            ).keys()
+        )
+    )
+    print(
+        "JSON SIZE:",
+        len(content)
+    )
+    print("=========================================")
 
     return data
 
@@ -401,7 +678,7 @@ def download_json_from_drive(
 
 def delete_file_from_drive(file_id):
     """
-    Delete a file from Google Drive.
+    Delete a Google Drive file.
     """
 
     service = get_drive_service()
@@ -424,5 +701,6 @@ if __name__ == "__main__":
 
     folder = get_master_project_folder(1)
 
-    print("\nMaster Project Folder:")
+    print()
+    print("Master Project Folder:")
     print(folder)
