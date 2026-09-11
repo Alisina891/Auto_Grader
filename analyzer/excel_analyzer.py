@@ -121,62 +121,62 @@ def find_data_start(sheet):
 # ============================================================
 
 def extract_cell_format(cell):
-    """Extract useful formatting information."""
+    """Extract useful formatting information safely."""
 
-    font_color = None
-
-    try:
-        if (
-            cell.font
-            and cell.font.color
-            and cell.font.color.type == "rgb"
-        ):
-            font_color = cell.font.color.rgb
-    except Exception:
-        font_color = None
-
-    fill_color = None
+    if cell is None:
+        return {
+            "font": {},
+            "fill": {},
+            "border": {},
+            "alignment": {},
+            "number_format": "General"
+        }
 
     try:
-        if (
-            cell.fill
-            and cell.fill.fgColor
-            and cell.fill.fgColor.type == "rgb"
-        ):
-            fill_color = cell.fill.fgColor.rgb
+        font = cell.font
     except Exception:
-        fill_color = None
+        font = None
+
+    try:
+        fill = cell.fill
+    except Exception:
+        fill = None
+
+    try:
+        border = cell.border
+    except Exception:
+        border = None
+
+    try:
+        alignment = cell.alignment
+    except Exception:
+        alignment = None
+
 
     return {
 
         "font": {
-            "name": cell.font.name,
-            "size": cell.font.size,
-            "bold": cell.font.bold,
-            "italic": cell.font.italic,
-            "color": str(font_color)
-            if font_color
-            else None
+            "name": getattr(font, "name", None),
+            "size": getattr(font, "size", None),
+            "bold": getattr(font, "bold", False),
+            "italic": getattr(font, "italic", False),
         },
 
         "fill": {
-            "color": str(fill_color)
-            if fill_color
-            else None,
-            "pattern": cell.fill.patternType
+            "pattern": getattr(fill, "patternType", None),
         },
 
         "border": {
-            "left": cell.border.left.style,
-            "right": cell.border.right.style,
-            "top": cell.border.top.style,
-            "bottom": cell.border.bottom.style
+            "left": getattr(getattr(border, "left", None), "style", None),
+            "right": getattr(getattr(border, "right", None), "style", None),
+            "top": getattr(getattr(border, "top", None), "style", None),
+            "bottom": getattr(getattr(border, "bottom", None), "style", None),
         },
 
         "alignment": {
-            "horizontal": cell.alignment.horizontal,
-            "vertical": cell.alignment.vertical,
-            "wrap_text": cell.alignment.wrapText
+            "horizontal": getattr(alignment, "horizontal", None),
+            "vertical": getattr(alignment, "vertical", None),
+            "wrap_text": getattr(alignment, "wrapText", None),
         },
 
         "number_format": (
@@ -185,7 +185,6 @@ def extract_cell_format(cell):
             else "General"
         )
     }
-
 
 # ============================================================
 # DATA TYPE
