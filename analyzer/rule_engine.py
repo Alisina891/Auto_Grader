@@ -1,12 +1,6 @@
 import json
-import os
+from pathlib import Path
 from collections import Counter
-
-from google_services.drive_service import (
-    get_master_project_folder,
-    upload_json_to_drive,
-    download_json_from_drive,
-)
 
 from analyzer.scoring_engine import (
     MAX_SCORE,
@@ -22,27 +16,495 @@ from analyzer.feedback_engine import (
 from analyzer.report_generator import save_report_json
 
 
-
-
 PASSING_SCORE = 12
+
+
+# ============================================================
+# PROJECT / MASTER RULE PATHS
+# ============================================================
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Excel master rules are stored separately on the Render server.
+#
+# Structure:
+#
+# master_rules/
+# └── excel/
+#     ├── project_1/
+#     │   └── master_excel.json
+#     ├── project_2/
+#     │   └── master_excel.json
+#     └── ...
+#
+EXCEL_MASTER_RULES_DIR = (
+    BASE_DIR
+    / "master_rules"
+    / "excel"
+)
+
+
+def _normalize_project_id(project_id):
+    """
+    Normalize project ID for filesystem storage.
+
+    Examples:
+
+        1
+        "1"
+        "project_1"
+        "Project_1"
+
+    All become:
+
+        project_1
+    """
+
+    if project_id is None:
+        raise ValueError(
+            "project_id cannot be None."
+        )
+
+    project_id = str(
+        project_id
+    ).strip()
+
+    if not project_id:
+        raise ValueError(
+            "project_id cannot be empty."
+        )
+
+    # --------------------------------------------------------
+    # Already in project_X format
+    # --------------------------------------------------------
+
+    if project_id.casefold().startswith(
+        "project_"
+    ):
+        project_number = project_id[
+            len("project_"):
+        ].strip()
+
+        if not project_number:
+            raise ValueError(
+                "Invalid project_id."
+            )
+
+        return (
+            "project_"
+            + project_number
+        )
+
+    # --------------------------------------------------------
+    # Numeric or other project ID
+    # --------------------------------------------------------
+
+    return (
+        "project_"
+        + project_id
+    )
+
+
+def _get_excel_master_project_dir(
+    project_id
+):
+    """
+    Return the Render directory for one Excel project.
+
+    Example:
+
+        master_rules/
+        └── excel/
+            └── project_1/
+    """
+
+    normalized_project_id = (
+        _normalize_project_id(
+            project_id
+        )
+    )
+
+    return (
+        EXCEL_MASTER_RULES_DIR
+        / normalized_project_id
+    )
+
+
+def _get_excel_master_file(
+    project_id
+):
+    """
+    Return the exact Excel master JSON path.
+
+    Example:
+
+        master_rules/
+        └── excel/
+            └── project_1/
+                └── master_excel.json
+    """
+
+    project_dir = (
+        _get_excel_master_project_dir(
+            project_id
+        )
+    )
+
+    return (
+        project_dir
+        / "master_excel.json"
+    )
+
+
+# ============================================================
+# MASTER RULES — EXCEL
+# ============================================================
+
+def save_master_rules(
+    rules,
+    project_id
+):
+    """
+    Save Excel master rules on the Render server.
+
+    Each project has its own directory.
+
+    Example:
+
+        master_rules/
+        └── excel/
+            ├── project_1/
+            │   └── master_excel.json
+            ├── project_2/
+            │   └── master_excel.json
+            └── project_3/
+                └── master_excel.json
+
+    If the same project_id is uploaded again,
+    its previous master file is removed and
+    the new master is saved in its place.
+
+    This function is ONLY for Excel master rules.
+    Word will have its own separate master system.
+    """
+
+    if not isinstance(
+        rules,
+        dict
+    ):
+        raise ValueError(
+            "Excel master rules must be a dictionary."
+        )
+
+    normalized_project_id = (
+        _normalize_project_id(
+            project_id
+        )
+    )
+
+    project_dir = (
+        _get_excel_master_project_dir(
+            normalized_project_id
+        )
+    )
+
+    master_file = (
+        _get_excel_master_file(
+            normalized_project_id
+        )
+    )
+
+    # --------------------------------------------------------
+    # Create project directory if necessary
+    # --------------------------------------------------------
+
+    project_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    # --------------------------------------------------------
+    # Remove old master for the SAME project only
+    # --------------------------------------------------------
+
+    if master_file.exists():
+
+        try:
+
+            master_file.unlink()
+
+            print(
+                "🗑️ Old Excel master removed:"
+            )
+
+            print(
+                f"   Project: "
+                f"{normalized_project_id}"
+            )
+
+            print(
+                f"   File: "
+                f"{master_file}"
+            )
+
+        except Exception as exc:
+
+            print(
+                "❌ Could not remove old "
+                "Excel master:"
+            )
+
+            print(
+                f"   {exc}"
+            )
+
+            raise
+
+    # --------------------------------------------------------
+    # Save new master
+    # --------------------------------------------------------
+
+    try:
+
+        with open(
+            master_file,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                rules,
+                file,
+                ensure_ascii=False,
+                indent=2
+            )
+
+    except Exception as exc:
+
+        print(
+            "❌ Could not save Excel "
+            "master rules:"
+        )
+
+        print(
+            f"   {exc}"
+        )
+
+        raise
+
+    print(
+        "=========================================="
+    )
+
+    print(
+        "✅ EXCEL MASTER RULES SAVED"
+    )
+
+    print(
+        f"   Project: "
+        f"{normalized_project_id}"
+    )
+
+    print(
+        f"   File: "
+        f"{master_file}"
+    )
+
+    print(
+        "=========================================="
+    )
+
+    return str(
+        master_file
+    )
+
+
+def load_master_rules(
+    project_id
+):
+    """
+    Load Excel master rules from the Render server.
+
+    The project_id determines exactly which master
+    file is loaded.
+
+    Example:
+
+        project_id = 1
+
+        ↓
+
+        master_rules/excel/project_1/master_excel.json
+
+    This function is ONLY for Excel.
+    """
+
+    normalized_project_id = (
+        _normalize_project_id(
+            project_id
+        )
+    )
+
+    master_file = (
+        _get_excel_master_file(
+            normalized_project_id
+        )
+    )
+
+    # --------------------------------------------------------
+    # Check whether master exists
+    # --------------------------------------------------------
+
+    if not master_file.exists():
+
+        print(
+            "⚠️ No Excel master rules found."
+        )
+
+        print(
+            f"   Project: "
+            f"{normalized_project_id}"
+        )
+
+        print(
+            f"   Expected file: "
+            f"{master_file}"
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # Load JSON
+    # --------------------------------------------------------
+
+    try:
+
+        with open(
+            master_file,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            rules = json.load(
+                file
+            )
+
+    except json.JSONDecodeError as exc:
+
+        print(
+            "❌ Excel master JSON is invalid."
+        )
+
+        print(
+            f"   Project: "
+            f"{normalized_project_id}"
+        )
+
+        print(
+            f"   Error: "
+            f"{exc}"
+        )
+
+        return None
+
+    except Exception as exc:
+
+        print(
+            "❌ Could not load Excel "
+            "master rules."
+        )
+
+        print(
+            f"   Project: "
+            f"{normalized_project_id}"
+        )
+
+        print(
+            f"   Error: "
+            f"{exc}"
+        )
+
+        return None
+
+    # --------------------------------------------------------
+    # Debug information
+    # --------------------------------------------------------
+
+    print(
+        "========== EXCEL MASTER RULES =========="
+    )
+
+    print(
+        "PROJECT:",
+        normalized_project_id
+    )
+
+    print(
+        "FILE:",
+        master_file
+    )
+
+    print(
+        "TYPE:",
+        type(rules)
+    )
+
+    print(
+        "KEYS:",
+        (
+            list(
+                rules.keys()
+            )
+            if isinstance(
+                rules,
+                dict
+            )
+            else
+            "NOT DICT"
+        )
+    )
+
+    print(
+        "========================================="
+    )
+
+    print(
+        f"✅ Excel master rules loaded "
+        f"for {normalized_project_id}"
+    )
+
+    return rules
 
 
 # ============================================================
 # NORMALIZATION
 # ============================================================
 
-def _normalize_text(value):
+def _normalize_text(
+    value
+):
 
     if value is None:
         return ""
 
-    text = str(value)
+    text = str(
+        value
+    )
 
     text = (
         text
-        .replace("\u200c", "")
-        .replace("\u200f", "")
-        .replace("\ufeff", "")
+        .replace(
+            "\u200c",
+            ""
+        )
+        .replace(
+            "\u200f",
+            ""
+        )
+        .replace(
+            "\ufeff",
+            ""
+        )
     )
 
     return " ".join(
@@ -50,16 +512,26 @@ def _normalize_text(value):
     ).casefold()
 
 
-def _normalize_columns(columns):
+def _normalize_columns(
+    columns
+):
 
     return [
-        _normalize_text(col)
-        for col in (columns or [])
-        if _normalize_text(col)
+        _normalize_text(
+            col
+        )
+        for col in (
+            columns or []
+        )
+        if _normalize_text(
+            col
+        )
     ]
 
 
-def _normalize_formula(formula):
+def _normalize_formula(
+    formula
+):
 
     if formula is None:
         return ""
@@ -67,79 +539,13 @@ def _normalize_formula(formula):
     return (
         str(formula)
         .strip()
-        .replace(" ", "")
+        .replace(
+            " ",
+            ""
+        )
         .casefold()
     )
 
-
-# ============================================================
-# MASTER RULES
-# ============================================================
-
-def save_master_rules(rules, project_id):
-    """
-    Save master rules directly to Google Drive.
-
-    Structure:
-
-        Auto_Grader
-        └── Master_Projects
-            └── Project_X
-                └── master_rules.json
-    """
-
-    project_folder = get_master_project_folder(project_id)
-
-    uploaded_file = upload_json_to_drive(
-        data=rules,
-        file_name="master_rules.json",
-        folder_id=project_folder["id"]
-    )
-
-    print(
-        f"✅ Master rules saved to Google Drive "
-        f"for Project {project_id}"
-    )
-
-    return uploaded_file
-
-
-def load_master_rules(project_id):
-    """
-    Load master rules directly from Google Drive.
-
-    Returns:
-        Dictionary containing master rules,
-        or None if the rules don't exist.
-    """
-
-    project_folder = get_master_project_folder(project_id)
-
-    rules = download_json_from_drive(
-        file_name="master_rules.json",
-        folder_id=project_folder["id"]
-    )
-
-    print("========== RAW MASTER RULES ==========")
-    print("TYPE:", type(rules))
-    print("KEYS:", list(rules.keys()) if isinstance(rules, dict) else "NOT DICT")
-    print("DATA:")
-    print(rules)
-    print("=======================================")
-
-    if rules is None:
-        print(
-            f"⚠️ No master rules found for "
-            f"Project {project_id}"
-        )
-        return None
-
-    print(
-        f"✅ Master rules loaded from Google Drive "
-        f"for Project {project_id}"
-    )
-
-    return rules
 
 # ============================================================
 # COLUMN MATCHING
@@ -164,9 +570,13 @@ def _find_matching_column(
         student_columns or []
     ):
 
-        if _normalize_text(
-            student_column
-        ) == target:
+        if (
+            _normalize_text(
+                student_column
+            )
+            ==
+            target
+        ):
 
             return student_column
 
@@ -234,18 +644,24 @@ def _get_formula_functions(
 
     if not functions:
 
-        formula_type = _get_formula_type(
-            formula
+        formula_type = (
+            _get_formula_type(
+                formula
+            )
         )
 
         if formula_type != "OTHER":
 
-            return [formula_type]
+            return [
+                formula_type
+            ]
 
         return []
 
     return [
-        str(function).upper()
+        str(
+            function
+        ).upper()
         for function in functions
     ]
 
@@ -268,7 +684,6 @@ def _formula_has_same_function(
     )
 
     if not master_functions:
-
         return False
 
     return master_functions.issubset(
@@ -301,20 +716,23 @@ def _formula_header_match(
     student_formula
 ):
 
-    master_header = _normalize_text(
-        master_formula.get(
-            "header"
+    master_header = (
+        _normalize_text(
+            master_formula.get(
+                "header"
+            )
         )
     )
 
-    student_header = _normalize_text(
-        student_formula.get(
-            "header"
+    student_header = (
+        _normalize_text(
+            student_formula.get(
+                "header"
+            )
         )
     )
 
     if not master_header:
-
         return False
 
     return (
@@ -341,13 +759,10 @@ def _formula_matches(
     """
 
     if not master_formula:
-
         return False
 
     if not student_formula:
-
         return False
-
 
     # --------------------------------------------------------
     # Explicit strict location
@@ -377,7 +792,6 @@ def _formula_matches(
 
         )
 
-
     # --------------------------------------------------------
     # Exact formula anywhere
     # --------------------------------------------------------
@@ -388,7 +802,6 @@ def _formula_matches(
     ):
 
         return True
-
 
     # --------------------------------------------------------
     # Same logical header + same function
@@ -412,7 +825,6 @@ def _formula_matches(
 
         return True
 
-
     # --------------------------------------------------------
     # Same function anywhere
     # --------------------------------------------------------
@@ -433,12 +845,14 @@ def _find_matching_student_formula(
     used_indexes
 ):
 
-    for index, student_formula in enumerate(
+    for (
+        index,
+        student_formula
+    ) in enumerate(
         student_formulas or []
     ):
 
         if index in used_indexes:
-
             continue
 
         if _formula_matches(
@@ -463,8 +877,10 @@ def _build_formula_type_counter(
 
     for formula in formulas or []:
 
-        functions = _get_formula_functions(
-            formula
+        functions = (
+            _get_formula_functions(
+                formula
+            )
         )
 
         if functions:
@@ -498,7 +914,9 @@ def _table_columns(
     )
 
     return [
-        _normalize_text(col)
+        _normalize_text(
+            col
+        )
         for col in columns
     ]
 
@@ -511,52 +929,45 @@ def _table_structure_matches(
     """
     Compare the actual table structure.
 
-    IMPORTANT:
-
     Table NAME is NEVER compared.
 
-    Example:
-
-        Master:  Table1
-        Student: StudentTable
-
-    If their required table structure matches,
-    the table is considered correct.
-
-    Table location is also flexible unless the Master
-    explicitly requests strict location.
+    Table location is also flexible unless the
+    Master explicitly requests strict location.
     """
 
-    master_columns = _table_columns(
-        master_table
+    master_columns = (
+        _table_columns(
+            master_table
+        )
     )
 
-    student_columns = _table_columns(
-        student_table
+    student_columns = (
+        _table_columns(
+            student_table
+        )
     )
-
 
     # --------------------------------------------------------
     # Compare logical table columns.
-    #
-    # Table name is intentionally ignored.
     # --------------------------------------------------------
 
     if master_columns != student_columns:
-
         return False
-
 
     # --------------------------------------------------------
     # Optional header requirement
     # --------------------------------------------------------
 
-    master_header = master_table.get(
-        "show_header"
+    master_header = (
+        master_table.get(
+            "show_header"
+        )
     )
 
-    student_header = student_table.get(
-        "show_header"
+    student_header = (
+        student_table.get(
+            "show_header"
+        )
     )
 
     if (
@@ -575,17 +986,20 @@ def _table_structure_matches(
 
         return False
 
-
     # --------------------------------------------------------
     # Optional totals requirement
     # --------------------------------------------------------
 
-    master_totals = master_table.get(
-        "show_totals"
+    master_totals = (
+        master_table.get(
+            "show_totals"
+        )
     )
 
-    student_totals = student_table.get(
-        "show_totals"
+    student_totals = (
+        student_table.get(
+            "show_totals"
+        )
     )
 
     if (
@@ -603,7 +1017,6 @@ def _table_structure_matches(
     ):
 
         return False
-
 
     return True
 
@@ -629,13 +1042,14 @@ def _merged_shape(
 ):
 
     if not range_string:
-
         return None
 
     try:
 
         start, end = (
-            range_string.split(":")
+            range_string.split(
+                ":"
+            )
         )
 
         from openpyxl.utils.cell import (
@@ -677,19 +1091,25 @@ def _merged_cells_match(
     not physical address.
     """
 
-    master_cells = master_sheet.get(
-        "merged_cells",
-        []
+    master_cells = (
+        master_sheet.get(
+            "merged_cells",
+            []
+        )
     )
 
-    student_cells = student_sheet.get(
-        "merged_cells",
-        []
+    student_cells = (
+        student_sheet.get(
+            "merged_cells",
+            []
+        )
     )
 
     master_shapes = [
 
-        _merged_shape(cell)
+        _merged_shape(
+            cell
+        )
 
         for cell in master_cells
 
@@ -697,7 +1117,9 @@ def _merged_cells_match(
 
     student_shapes = [
 
-        _merged_shape(cell)
+        _merged_shape(
+            cell
+        )
 
         for cell in student_cells
 
@@ -733,19 +1155,27 @@ def _validation_signature(
     return (
 
         _normalize_text(
-            rule.get("type")
+            rule.get(
+                "type"
+            )
         ),
 
         _normalize_text(
-            rule.get("operator")
+            rule.get(
+                "operator"
+            )
         ),
 
         _normalize_text(
-            rule.get("formula1")
+            rule.get(
+                "formula1"
+            )
         ),
 
         _normalize_text(
-            rule.get("formula2")
+            rule.get(
+                "formula2"
+            )
         )
 
     )
@@ -807,14 +1237,20 @@ def _cf_signature(
     return (
 
         _normalize_text(
-            rule.get("type")
+            rule.get(
+                "type"
+            )
         ),
 
         _normalize_text(
-            rule.get("operator")
+            rule.get(
+                "operator"
+            )
         ),
 
-        str(formula)
+        str(
+            formula
+        )
 
     )
 
@@ -857,21 +1293,24 @@ def compare_sheets(
 
     total_checks = 0
 
-
     # ========================================================
     # CHECK 1 — LOGICAL COLUMNS
     # ========================================================
 
     total_checks += 1
 
-    master_columns = master_sheet.get(
-        "columns",
-        []
+    master_columns = (
+        master_sheet.get(
+            "columns",
+            []
+        )
     )
 
-    student_columns = student_sheet.get(
-        "columns",
-        []
+    student_columns = (
+        student_sheet.get(
+            "columns",
+            []
+        )
     )
 
     master_column_set = set(
@@ -897,22 +1336,6 @@ def compare_sheets(
         -
         master_column_set
     )
-
-
-    # --------------------------------------------------------
-    # IMPORTANT:
-    #
-    # Column position/order is NOT checked.
-    #
-    # ALL missing columns create ONE error only.
-    #
-    # Therefore:
-    #
-    # 1 missing column  -> -1
-    # 6 missing columns -> -1
-    # 20 missing columns -> -1
-    #
-    # --------------------------------------------------------
 
     if not missing_columns:
 
@@ -940,23 +1363,18 @@ def compare_sheets(
             "sheet":
                 sheet_name,
 
-            # Keep scalar "column" for compatibility
-            # with the existing Feedback Engine.
             "column":
                 ", ".join(
                     missing_display
                 ),
 
-            # Also preserve structured information.
             "columns":
                 missing_display,
 
-            # Explicitly one point.
             "weight":
                 1
 
         })
-
 
     # --------------------------------------------------------
     # Extra columns are informational only.
@@ -972,23 +1390,25 @@ def compare_sheets(
 
         )
 
-
     # ========================================================
     # CHECK 2 — DATA ROWS
     # ========================================================
 
     total_checks += 1
 
-    expected_rows = master_sheet.get(
-        "data_rows",
-        0
+    expected_rows = (
+        master_sheet.get(
+            "data_rows",
+            0
+        )
     )
 
-    actual_rows = student_sheet.get(
-        "data_rows",
-        0
+    actual_rows = (
+        student_sheet.get(
+            "data_rows",
+            0
+        )
     )
-
 
     if actual_rows >= expected_rows:
 
@@ -1028,44 +1448,22 @@ def compare_sheets(
             "missing_rows":
                 missing_rows,
 
-            # IMPORTANT:
-            # Regardless of how many rows are missing,
-            # this deficiency costs only one point.
             "weight":
                 1
 
         })
 
-
     # ========================================================
     # CHECK 3 — REQUIRED COLUMNS
     # ========================================================
-    #
-    # IMPORTANT:
-    #
-    # This used to duplicate CHECK 1.
-    #
-    # Because required_columns are already part of the logical
-    # column comparison, we do NOT create another check.
-    #
-    # This prevents:
-    #
-    # missing column
-    #       +
-    # required column
-    #
-    # from being counted twice.
-    #
-    # ========================================================
 
-    required_columns = master_sheet.get(
-        "required_columns",
-        []
+    required_columns = (
+        master_sheet.get(
+            "required_columns",
+            []
+        )
     )
 
-    # Informational only.
-    #
-    # We do not create another deduction.
     missing_required = [
 
         required
@@ -1079,8 +1477,8 @@ def compare_sheets(
 
     ]
 
-    # No extra scoring/check counter here.
-
+    # Informational only.
+    # No additional deduction is created here.
 
     # ========================================================
     # CHECK 4 — DATA TYPES
@@ -1088,21 +1486,27 @@ def compare_sheets(
 
     total_checks += 1
 
-    master_types = master_sheet.get(
-        "data_types",
-        {}
+    master_types = (
+        master_sheet.get(
+            "data_types",
+            {}
+        )
     )
 
-    student_types = student_sheet.get(
-        "data_types",
-        {}
+    student_types = (
+        student_sheet.get(
+            "data_types",
+            {}
+        )
     )
 
     type_errors = 0
 
     normalized_student_types = {
 
-        _normalize_text(key):
+        _normalize_text(
+            key
+        ):
             value
 
         for key, value
@@ -1110,13 +1514,15 @@ def compare_sheets(
 
     }
 
+    for (
+        master_column,
+        expected_types
+    ) in master_types.items():
 
-    for master_column, expected_types in (
-        master_types.items()
-    ):
-
-        normalized_column = _normalize_text(
-            master_column
+        normalized_column = (
+            _normalize_text(
+                master_column
+            )
         )
 
         actual_types = (
@@ -1126,13 +1532,13 @@ def compare_sheets(
         )
 
         if actual_types is None:
-
             continue
-
 
         expected_set = {
 
-            _normalize_text(t)
+            _normalize_text(
+                t
+            )
 
             for t in expected_types
 
@@ -1140,17 +1546,16 @@ def compare_sheets(
 
         actual_set = {
 
-            _normalize_text(t)
+            _normalize_text(
+                t
+            )
 
             for t in actual_types
 
         }
 
-
         if "any" in expected_set:
-
             continue
-
 
         numeric_expected = (
 
@@ -1172,22 +1577,17 @@ def compare_sheets(
 
         )
 
-
         if (
             numeric_expected
             and
             numeric_actual
         ):
-
             continue
-
 
         if expected_set.intersection(
             actual_set
         ):
-
             continue
-
 
         type_errors += 1
 
@@ -1219,11 +1619,8 @@ def compare_sheets(
 
         })
 
-
     if type_errors == 0:
-
         checks_passed += 1
-
 
     # ========================================================
     # CHECK 5 — FORMULAS
@@ -1231,16 +1628,19 @@ def compare_sheets(
 
     total_checks += 1
 
-    master_formulas = master_sheet.get(
-        "formulas",
-        []
+    master_formulas = (
+        master_sheet.get(
+            "formulas",
+            []
+        )
     )
 
-    student_formulas = student_sheet.get(
-        "formulas",
-        []
+    student_formulas = (
+        student_sheet.get(
+            "formulas",
+            []
+        )
     )
-
 
     if not master_formulas:
 
@@ -1253,7 +1653,6 @@ def compare_sheets(
         missing_formula_requirements = []
 
         matched_formulas = []
-
 
         for master_formula in (
             master_formulas
@@ -1287,7 +1686,6 @@ def compare_sheets(
                         ]
                     )
                 )
-
 
         if not missing_formula_requirements:
 
@@ -1371,7 +1769,6 @@ def compare_sheets(
                     error
                 )
 
-
         # ----------------------------------------------------
         # Extra formulas are allowed.
         # ----------------------------------------------------
@@ -1412,23 +1809,25 @@ def compare_sheets(
 
                     )
 
-
     # ========================================================
     # CHECK 6 — TABLES
     # ========================================================
 
     total_checks += 1
 
-    master_tables = master_sheet.get(
-        "tables",
-        []
+    master_tables = (
+        master_sheet.get(
+            "tables",
+            []
+        )
     )
 
-    student_tables = student_sheet.get(
-        "tables",
-        []
+    student_tables = (
+        student_sheet.get(
+            "tables",
+            []
+        )
     )
-
 
     if not master_tables:
 
@@ -1440,22 +1839,21 @@ def compare_sheets(
 
         missing_tables = []
 
-
         for master_table in (
             master_tables
         ):
 
             matched_index = None
 
-
-            for index, student_table in enumerate(
+            for (
+                index,
+                student_table
+            ) in enumerate(
                 student_tables
             ):
 
                 if index in used_student_tables:
-
                     continue
-
 
                 if _table_structure_matches(
                     master_table,
@@ -1463,9 +1861,7 @@ def compare_sheets(
                 ):
 
                     matched_index = index
-
                     break
-
 
             if matched_index is None:
 
@@ -1474,7 +1870,6 @@ def compare_sheets(
                 )
 
                 continue
-
 
             used_student_tables.add(
                 matched_index
@@ -1485,7 +1880,6 @@ def compare_sheets(
                     matched_index
                 ]
             )
-
 
             # ------------------------------------------------
             # OPTIONAL STRICT LOCATION
@@ -1507,7 +1901,6 @@ def compare_sheets(
                     )
                 )
 
-
                 master_start = (
 
                     master_range.split(
@@ -1520,7 +1913,6 @@ def compare_sheets(
 
                 )
 
-
                 student_start = (
 
                     student_range.split(
@@ -1532,7 +1924,6 @@ def compare_sheets(
                     else None
 
                 )
-
 
                 if (
                     master_start
@@ -1572,7 +1963,6 @@ def compare_sheets(
 
                     })
 
-
         # ----------------------------------------------------
         # Missing tables
         # ----------------------------------------------------
@@ -1606,7 +1996,6 @@ def compare_sheets(
             ]
 
             if not table_errors:
-
                 checks_passed += 1
 
         else:
@@ -1659,23 +2048,25 @@ def compare_sheets(
                     error
                 )
 
-
     # ========================================================
     # CHECK 7 — DATA VALIDATION
     # ========================================================
 
     total_checks += 1
 
-    master_dv = master_sheet.get(
-        "data_validation",
-        []
+    master_dv = (
+        master_sheet.get(
+            "data_validation",
+            []
+        )
     )
 
-    student_dv = student_sheet.get(
-        "data_validation",
-        []
+    student_dv = (
+        student_sheet.get(
+            "data_validation",
+            []
+        )
     )
-
 
     if not master_dv:
 
@@ -1687,20 +2078,19 @@ def compare_sheets(
 
         missing = []
 
-
         for master_rule in master_dv:
 
             matched = None
 
-
-            for index, student_rule in enumerate(
+            for (
+                index,
+                student_rule
+            ) in enumerate(
                 student_dv
             ):
 
                 if index in used:
-
                     continue
-
 
                 if _validation_matches(
                     master_rule,
@@ -1708,9 +2098,7 @@ def compare_sheets(
                 ):
 
                     matched = index
-
                     break
-
 
             if matched is None:
 
@@ -1723,7 +2111,6 @@ def compare_sheets(
                 used.add(
                     matched
                 )
-
 
         if not missing:
 
@@ -1754,23 +2141,25 @@ def compare_sheets(
 
             })
 
-
     # ========================================================
     # CHECK 8 — CONDITIONAL FORMATTING
     # ========================================================
 
     total_checks += 1
 
-    master_cf = master_sheet.get(
-        "conditional_formatting",
-        []
+    master_cf = (
+        master_sheet.get(
+            "conditional_formatting",
+            []
+        )
     )
 
-    student_cf = student_sheet.get(
-        "conditional_formatting",
-        []
+    student_cf = (
+        student_sheet.get(
+            "conditional_formatting",
+            []
+        )
     )
-
 
     if not master_cf:
 
@@ -1782,20 +2171,19 @@ def compare_sheets(
 
         missing = []
 
-
         for master_rule in master_cf:
 
             matched = None
 
-
-            for index, student_rule in enumerate(
+            for (
+                index,
+                student_rule
+            ) in enumerate(
                 student_cf
             ):
 
                 if index in used:
-
                     continue
-
 
                 if _conditional_formatting_matches(
                     master_rule,
@@ -1803,9 +2191,7 @@ def compare_sheets(
                 ):
 
                     matched = index
-
                     break
-
 
             if matched is None:
 
@@ -1818,7 +2204,6 @@ def compare_sheets(
                 used.add(
                     matched
                 )
-
 
         if not missing:
 
@@ -1850,31 +2235,11 @@ def compare_sheets(
 
             })
 
-
     # ========================================================
     # NO COLUMN WIDTH CHECK
     # ========================================================
-    #
-    # IMPORTANT:
-    #
-    # Column width is NOT a grading requirement.
-    #
-    # We intentionally do NOT:
-    #
-    #   - inspect column_widths
-    #   - create wrong_column_width
-    #   - add a check
-    #   - add feedback
-    #
-    # Therefore column width has ZERO effect on:
-    #
-    #   score
-    #   accuracy
-    #   checks
-    #   feedback
-    #
-    # ========================================================
 
+    # Column width is intentionally NOT a grading requirement.
 
     # ========================================================
     # CHECK 9 — MERGED CELLS
@@ -1882,16 +2247,19 @@ def compare_sheets(
 
     total_checks += 1
 
-    master_merged = master_sheet.get(
-        "merged_cells",
-        []
+    master_merged = (
+        master_sheet.get(
+            "merged_cells",
+            []
+        )
     )
 
-    student_merged = student_sheet.get(
-        "merged_cells",
-        []
+    student_merged = (
+        student_sheet.get(
+            "merged_cells",
+            []
+        )
     )
-
 
     if not master_merged:
 
@@ -1931,7 +2299,6 @@ def compare_sheets(
 
             })
 
-
     # ========================================================
     # RESULT
     # ========================================================
@@ -1968,21 +2335,18 @@ def is_empty_project(
 
         return True
 
-
     sheets = student_rules.get(
         "sheets",
         {}
     )
 
-
     if not sheets:
-
         return True
 
-
-    for sheet_name, sheet in (
-        sheets.items()
-    ):
+    for (
+        sheet_name,
+        sheet
+    ) in sheets.items():
 
         if sheet.get(
             "total_columns",
@@ -1991,7 +2355,6 @@ def is_empty_project(
 
             return False
 
-
         if sheet.get(
             "data_rows",
             0
@@ -1999,13 +2362,11 @@ def is_empty_project(
 
             return False
 
-
         if sheet.get(
             "formulas"
         ):
 
             return False
-
 
         if sheet.get(
             "tables"
@@ -2013,13 +2374,11 @@ def is_empty_project(
 
             return False
 
-
         if sheet.get(
             "data_validation"
         ):
 
             return False
-
 
         if sheet.get(
             "conditional_formatting"
@@ -2027,13 +2386,11 @@ def is_empty_project(
 
             return False
 
-
         if sheet.get(
             "merged_cells"
         ):
 
             return False
-
 
     return True
 
@@ -2046,6 +2403,75 @@ def compare_structure(
     student_rules,
     master_rules
 ):
+
+    # ========================================================
+    # SAFETY CHECK
+    # ========================================================
+
+    if master_rules is None:
+
+        error = {
+
+            "type":
+                "master_rules_missing"
+
+        }
+
+        score_details = get_score_details(
+            [error],
+            starting_score=MAX_SCORE
+        )
+
+        student_feedback = generate_feedback(
+            [error]
+        )
+
+        return {
+
+            "score":
+                score_details[
+                    "final_score"
+                ],
+
+            "max_score":
+                MAX_SCORE,
+
+            "status":
+                score_details[
+                    "status"
+                ],
+
+            "score_details":
+                score_details,
+
+            "student_feedback":
+                student_feedback,
+
+            "feedback": [
+                "The master project rules could not be found."
+            ],
+
+            "errors":
+                [error],
+
+            "passed":
+                False,
+
+            "total_checks":
+                0,
+
+            "checks_passed":
+                0,
+
+            "summary":
+                (
+                    f"Score: "
+                    f"{score_details['final_score']}/"
+                    f"{MAX_SCORE} | "
+                    f"Master Rules Missing"
+                )
+
+        }
 
     # ========================================================
     # EMPTY PROJECT
@@ -2064,17 +2490,14 @@ def compare_structure(
 
         ]
 
-
         score_details = get_score_details(
             empty_errors,
             starting_score=MAX_SCORE
         )
 
-
         student_feedback = generate_feedback(
             empty_errors
         )
-
 
         return {
 
@@ -2125,7 +2548,6 @@ def compare_structure(
 
         }
 
-
     # ========================================================
     # TRACKING
     # ========================================================
@@ -2138,23 +2560,25 @@ def compare_structure(
 
     total_passed = 0
 
-
     # ========================================================
     # SHEET COUNT
     # ========================================================
 
     total_checks += 1
 
-    expected_sheets = master_rules.get(
-        "total_sheets",
-        0
+    expected_sheets = (
+        master_rules.get(
+            "total_sheets",
+            0
+        )
     )
 
-    actual_sheets = student_rules.get(
-        "total_sheets",
-        0
+    actual_sheets = (
+        student_rules.get(
+            "total_sheets",
+            0
+        )
     )
-
 
     if actual_sheets == expected_sheets:
 
@@ -2192,7 +2616,6 @@ def compare_structure(
 
         })
 
-
     # ========================================================
     # SHEET NAMES
     # ========================================================
@@ -2201,7 +2624,9 @@ def compare_structure(
 
     master_sheet_names = {
 
-        _normalize_text(name):
+        _normalize_text(
+            name
+        ):
             name
 
         for name
@@ -2214,7 +2639,9 @@ def compare_structure(
 
     student_sheet_names = {
 
-        _normalize_text(name):
+        _normalize_text(
+            name
+        ):
             name
 
         for name
@@ -2225,28 +2652,33 @@ def compare_structure(
 
     }
 
-
     missing_sheet_keys = (
 
-        set(master_sheet_names)
+        set(
+            master_sheet_names
+        )
 
         -
-        
-        set(student_sheet_names)
+
+        set(
+            student_sheet_names
+        )
 
     )
-
 
     extra_sheet_keys = (
 
-        set(student_sheet_names)
+        set(
+            student_sheet_names
+        )
 
         -
 
-        set(master_sheet_names)
+        set(
+            master_sheet_names
+        )
 
     )
-
 
     if not missing_sheet_keys:
 
@@ -2258,10 +2690,10 @@ def compare_structure(
 
             master_sheet_names[key]
 
-            for key in missing_sheet_keys
+            for key
+            in missing_sheet_keys
 
         ]
-
 
         all_feedback.append(
 
@@ -2269,7 +2701,6 @@ def compare_structure(
             f"{', '.join(missing_names)}"
 
         )
-
 
         for sheet_name in missing_names:
 
@@ -2283,17 +2714,16 @@ def compare_structure(
 
             })
 
-
     if extra_sheet_keys:
 
         extra_names = [
 
             student_sheet_names[key]
 
-            for key in extra_sheet_keys
+            for key
+            in extra_sheet_keys
 
         ]
-
 
         all_feedback.append(
 
@@ -2301,7 +2731,6 @@ def compare_structure(
             f"{', '.join(extra_names)}"
 
         )
-
 
         for sheet_name in extra_names:
 
@@ -2315,32 +2744,35 @@ def compare_structure(
 
             })
 
-
     # ========================================================
     # PER SHEET
     # ========================================================
 
-    master_sheets_data = master_rules.get(
-        "sheets",
-        {}
+    master_sheets_data = (
+        master_rules.get(
+            "sheets",
+            {}
+        )
     )
 
-    student_sheets_data = student_rules.get(
-        "sheets",
-        {}
+    student_sheets_data = (
+        student_rules.get(
+            "sheets",
+            {}
+        )
     )
-
 
     normalized_student_sheets = {
 
-        _normalize_text(name):
+        _normalize_text(
+            name
+        ):
             sheet
 
         for name, sheet
         in student_sheets_data.items()
 
     }
-
 
     for master_sheet_name in (
         master_rules.get(
@@ -2349,10 +2781,11 @@ def compare_structure(
         )
     ):
 
-        normalized_name = _normalize_text(
-            master_sheet_name
+        normalized_name = (
+            _normalize_text(
+                master_sheet_name
+            )
         )
-
 
         student_sheet_name = (
             normalized_student_sheets.get(
@@ -2360,11 +2793,8 @@ def compare_structure(
             )
         )
 
-
         if student_sheet_name is None:
-
             continue
-
 
         master_sheet = (
             master_sheets_data.get(
@@ -2372,7 +2802,6 @@ def compare_structure(
                 {}
             )
         )
-
 
         result = compare_sheets(
 
@@ -2384,26 +2813,21 @@ def compare_structure(
 
         )
 
-
         all_feedback.extend(
             result["feedback"]
         )
-
 
         all_errors.extend(
             result["errors"]
         )
 
-
         total_checks += (
             result["total_checks"]
         )
 
-
         total_passed += (
             result["checks_passed"]
         )
-
 
     # ========================================================
     # SCORING
@@ -2417,13 +2841,11 @@ def compare_structure(
 
     )
 
-
     final_score = (
         score_details[
             "final_score"
         ]
     )
-
 
     # ========================================================
     # PASS / FAIL
@@ -2431,7 +2853,9 @@ def compare_structure(
 
     critical_error = any(
 
-        error.get("type")
+        error.get(
+            "type"
+        )
 
         in {
 
@@ -2441,10 +2865,10 @@ def compare_structure(
 
         }
 
-        for error in all_errors
+        for error
+        in all_errors
 
     )
-
 
     if critical_error:
 
@@ -2460,7 +2884,6 @@ def compare_structure(
 
         )
 
-
     # ========================================================
     # FEEDBACK
     # ========================================================
@@ -2469,9 +2892,7 @@ def compare_structure(
         all_errors
     )
 
-
     ai_feedback = None
-
 
     if all_errors:
 
@@ -2485,14 +2906,15 @@ def compare_structure(
             )
         )
 
-
         if isinstance(
             ai_result,
             dict
         ):
 
-            ai_feedback = ai_result.get(
-                "ai_feedback"
+            ai_feedback = (
+                ai_result.get(
+                    "ai_feedback"
+                )
             )
 
         elif isinstance(
@@ -2500,8 +2922,9 @@ def compare_structure(
             str
         ):
 
-            ai_feedback = ai_result
-
+            ai_feedback = (
+                ai_result
+            )
 
     # ========================================================
     # RESULT
@@ -2581,7 +3004,6 @@ def generate_report(
         "checks_passed"
     ]
 
-
     accuracy = round(
 
         (
@@ -2605,12 +3027,10 @@ def generate_report(
 
     )
 
-
     score_details = result.get(
         "score_details",
         {}
     )
-
 
     return {
 
@@ -2629,6 +3049,7 @@ def generate_report(
         "status":
 
             (
+
                 "PASSED"
 
                 if result["passed"]
@@ -2636,6 +3057,7 @@ def generate_report(
                 else
 
                 "FAILED"
+
             ),
 
         "score_status":
@@ -2723,15 +3145,17 @@ if __name__ == "__main__":
         extract_full_rules
     )
 
-
-    print("=" * 70)
-
     print(
-        "FLEXIBLE AUTO GRADER TEST"
+        "=" * 70
     )
 
-    print("=" * 70)
+    print(
+        "FLEXIBLE EXCEL AUTO GRADER TEST"
+    )
 
+    print(
+        "=" * 70
+    )
 
     # --------------------------------------------------------
     # MASTER
@@ -2749,22 +3173,18 @@ if __name__ == "__main__":
         "Project_1"
     )
 
-
     print(
-        "\n=== MASTER ==="
+        "\n=== EXCEL MASTER ==="
     )
-
 
     master_rules = extract_full_rules(
         master_file
     )
 
-
     save_master_rules(
         master_rules,
         project_id
     )
-
 
     # --------------------------------------------------------
     # LOAD MASTER
@@ -2774,6 +3194,17 @@ if __name__ == "__main__":
         project_id
     )
 
+    if master is None:
+
+        print(
+            "\n❌ Test stopped:"
+        )
+
+        print(
+            "Excel master rules could not be loaded."
+        )
+
+        raise SystemExit(1)
 
     # --------------------------------------------------------
     # STUDENT
@@ -2783,19 +3214,14 @@ if __name__ == "__main__":
         "\n=== STUDENT ==="
     )
 
-
     student_rules = extract_full_rules(
         student_file
     )
-
 
     # --------------------------------------------------------
     # COMPARE
     # --------------------------------------------------------
 
-
-
-    
     result = compare_structure(
 
         student_rules,
@@ -2803,7 +3229,6 @@ if __name__ == "__main__":
         master
 
     )
-
 
     # --------------------------------------------------------
     # REPORT
@@ -2819,7 +3244,6 @@ if __name__ == "__main__":
 
     )
 
-
     # --------------------------------------------------------
     # RESULT
     # --------------------------------------------------------
@@ -2830,7 +3254,6 @@ if __name__ == "__main__":
         "=" * 70
     )
 
-
     print(
 
         f"SCORE: "
@@ -2839,14 +3262,12 @@ if __name__ == "__main__":
 
     )
 
-
     print(
 
         f"STATUS: "
         f"{'✅ PASSED' if result['passed'] else '❌ FAILED'}"
 
     )
-
 
     print(
 
@@ -2856,7 +3277,6 @@ if __name__ == "__main__":
 
     )
 
-
     print(
 
         f"ACCURACY: "
@@ -2864,9 +3284,9 @@ if __name__ == "__main__":
 
     )
 
-
-    print("=" * 70)
-
+    print(
+        "=" * 70
+    )
 
     # --------------------------------------------------------
     # SCORE BREAKDOWN
@@ -2877,7 +3297,6 @@ if __name__ == "__main__":
         {}
     )
 
-
     print(
         "\nSCORE BREAKDOWN:"
     )
@@ -2885,7 +3304,6 @@ if __name__ == "__main__":
     print(
         "-" * 70
     )
-
 
     print(
 
@@ -2895,11 +3313,9 @@ if __name__ == "__main__":
 
     )
 
-
     print(
         "\nDeductions:"
     )
-
 
     for item in details.get(
         "error_deductions",
@@ -2917,7 +3333,6 @@ if __name__ == "__main__":
                 " [IGNORED]"
             )
 
-
         print(
 
             f"  {item['number']}. "
@@ -2928,14 +3343,12 @@ if __name__ == "__main__":
 
         )
 
-
     print(
 
         f"\nTotal Deduction: "
         f"-{details.get('total_deduction', 0)}"
 
     )
-
 
     print(
 
@@ -2945,14 +3358,12 @@ if __name__ == "__main__":
 
     )
 
-
     print(
 
         f"Status: "
         f"{details.get('status', result['status'])}"
 
     )
-
 
     # --------------------------------------------------------
     # FEEDBACK
@@ -2963,7 +3374,6 @@ if __name__ == "__main__":
         print(
             "\nFEEDBACK:"
         )
-
 
         for feedback in result[
             "feedback"
@@ -2979,7 +3389,6 @@ if __name__ == "__main__":
             "\n✅ Perfect! No issues found."
         )
 
-
     # --------------------------------------------------------
     # ERRORS
     # --------------------------------------------------------
@@ -2990,7 +3399,6 @@ if __name__ == "__main__":
             "\nDETECTED ERRORS:"
         )
 
-
         for error in result[
             "errors"
         ]:
@@ -2998,7 +3406,6 @@ if __name__ == "__main__":
             print(
                 f"  • {error}"
             )
-
 
     # --------------------------------------------------------
     # SUMMARY
@@ -3009,7 +3416,6 @@ if __name__ == "__main__":
         f"\n{result['summary']}"
 
     )
-
 
     # --------------------------------------------------------
     # STUDENT FEEDBACK
@@ -3023,7 +3429,6 @@ if __name__ == "__main__":
             "\nSTUDENT FEEDBACK:"
         )
 
-
         for item in result[
             "student_feedback"
         ]:
@@ -3035,13 +3440,11 @@ if __name__ == "__main__":
 
             )
 
-
             print(
 
                 f"  {item['message']}"
 
             )
-
 
     # --------------------------------------------------------
     # AI FEEDBACK
@@ -3050,7 +3453,6 @@ if __name__ == "__main__":
     ai_feedback = result.get(
         "ai_feedback"
     )
-
 
     if ai_feedback:
 
@@ -3070,9 +3472,8 @@ if __name__ == "__main__":
             "-" * 70
         )
 
-
     # --------------------------------------------------------
-    # SAVE
+    # SAVE REPORT
     # --------------------------------------------------------
 
     report_path = save_report_json(
@@ -3084,7 +3485,6 @@ if __name__ == "__main__":
         project_id
 
     )
-
 
     print(
 

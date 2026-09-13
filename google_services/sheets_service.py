@@ -1,15 +1,34 @@
 from googleapiclient.discovery import build
+
 from google_services.auth import get_credentials
 
 
+# ============================================================
+# GOOGLE SHEETS
+# ============================================================
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive.file"
+    "https://www.googleapis.com/auth/drive.file",
 ]
 
 
-SPREADSHEET_ID = "1xcYpwtU-V8x8nr81rUfiVz1dH5LxMp-mYZzqVTViCpU"
+# ============================================================
+# SPREADSHEET IDS
+# ============================================================
 
+EXCEL_SPREADSHEET_ID = (
+    "1xcYpwtU-V8x8nr81rUfiVz1dH5LxMp-mYZzqVTViCpU"
+)
+
+WORD_SPREADSHEET_ID = (
+    "11U-syWjW4NDYtTcHNTk8b9YFWqjeaKZer3TyZKrcDI8"
+)
+
+
+# ============================================================
+# GOOGLE SHEETS SERVICE
+# ============================================================
 
 def get_service():
     """
@@ -21,11 +40,16 @@ def get_service():
     return build(
         "sheets",
         "v4",
-        credentials=creds
+        credentials=creds,
     )
 
 
-def save_student_result(
+# ============================================================
+# INTERNAL SAVE FUNCTION
+# ============================================================
+
+def _save_result(
+    spreadsheet_id,
     student_name,
     email,
     attendance_number,
@@ -34,40 +58,65 @@ def save_student_result(
     score,
     max_score,
     status,
-    feedback
+    feedback,
 ):
     """
-    Save the final student grading result to Google Sheets.
-
-    Columns:
-
-    A = Student Name
-    B = Email
-    C = Attendance Number
-    D = Grade
-    E = Project ID
-    F = Score
-    G = Max Score
-    H = Status
-    I = Feedback
-
-    The score is calculated by the grading engine.
-    AI feedback does not calculate or modify the score.
+    Save a grading result into a specific
+    Google Spreadsheet.
     """
 
     service = get_service()
 
-    # Make sure all values are safe for Google Sheets
-    student_name = str(student_name).strip()
-    email = str(email).strip().lower()
-    attendance_number = str(attendance_number).strip()
-    grade = str(grade).strip().upper()
-    project_id = str(project_id).strip()
+    # --------------------------------------------------------
+    # NORMALIZE DATA
+    # --------------------------------------------------------
 
-    if not isinstance(feedback, str):
-        feedback = str(feedback)
+    student_name = str(
+        student_name
+    ).strip()
+
+    email = str(
+        email
+    ).strip().lower()
+
+    attendance_number = str(
+        attendance_number
+    ).strip()
+
+    grade = str(
+        grade
+    ).strip().upper()
+
+    project_id = str(
+        project_id
+    ).strip()
+
+    status = str(
+        status
+    ).strip().upper()
+
+    # --------------------------------------------------------
+    # NORMALIZE FEEDBACK
+    # --------------------------------------------------------
+
+    if feedback is None:
+
+        feedback = ""
+
+    elif not isinstance(
+        feedback,
+        str,
+    ):
+
+        feedback = str(
+            feedback
+        )
 
     feedback = feedback.strip()
+
+    # --------------------------------------------------------
+    # BUILD ROW
+    # --------------------------------------------------------
 
     row = [
         student_name,
@@ -78,77 +127,314 @@ def save_student_result(
         score,
         max_score,
         status,
-        feedback
+        feedback,
     ]
 
     body = {
-        "values": [row]
+        "values": [
+            row
+        ]
     }
 
+    # --------------------------------------------------------
+    # SAVE TO GOOGLE SHEETS
+    # --------------------------------------------------------
+
     service.spreadsheets().values().append(
-        spreadsheetId=SPREADSHEET_ID,
-        range="Sheet1!A:I",
+
+        spreadsheetId=spreadsheet_id,
+
+        # Uses the first sheet.
+        # Does not depend on "Sheet1".
+
+        range="A:I",
+
         valueInputOption="RAW",
+
         insertDataOption="INSERT_ROWS",
-        body=body
+
+        body=body,
+
     ).execute()
+
+    # --------------------------------------------------------
+    # LOG
+    # --------------------------------------------------------
 
     print(
         f"✅ Saved student result | "
         f"Name: {student_name} | "
+        f"Email: {email} | "
         f"Attendance: {attendance_number} | "
         f"Grade: {grade} | "
         f"Project: {project_id} | "
-        f"Score: {score}/{max_score}"
+        f"Score: {score}/{max_score} | "
+        f"Status: {status}"
     )
 
 
-def email_exists(email):
-    """
-    Check whether an email already exists in Google Sheets.
+# ============================================================
+# SAVE EXCEL STUDENT RESULT
+# ============================================================
 
-    Email is stored in column B.
-    Returns:
-        True  -> email already exists
-        False -> email does not exist
+def save_student_result(
+    student_name,
+    email,
+    attendance_number,
+    grade,
+    project_id,
+    score,
+    max_score,
+    status,
+    feedback,
+):
+    """
+    Save an Excel student grading result.
+    """
+
+    _save_result(
+
+        spreadsheet_id=EXCEL_SPREADSHEET_ID,
+
+        student_name=student_name,
+
+        email=email,
+
+        attendance_number=attendance_number,
+
+        grade=grade,
+
+        project_id=project_id,
+
+        score=score,
+
+        max_score=max_score,
+
+        status=status,
+
+        feedback=feedback,
+    )
+
+
+# ============================================================
+# SAVE WORD STUDENT RESULT
+# ============================================================
+
+def save_word_student_result(
+    student_name,
+    email,
+    attendance_number,
+    grade,
+    project_id,
+    score,
+    max_score,
+    status,
+    feedback,
+):
+    """
+    Save a Word student grading result.
+    """
+
+    _save_result(
+
+        spreadsheet_id=WORD_SPREADSHEET_ID,
+
+        student_name=student_name,
+
+        email=email,
+
+        attendance_number=attendance_number,
+
+        grade=grade,
+
+        project_id=project_id,
+
+        score=score,
+
+        max_score=max_score,
+
+        status=status,
+
+        feedback=feedback,
+    )
+
+
+# ============================================================
+# CHECK EMAIL
+# ============================================================
+
+def email_exists(
+    email,
+    file_type="excel",
+):
+    """
+    Check whether an email already exists
+    in the spreadsheet belonging to the
+    specified project type.
+
+    file_type:
+        excel
+        word
     """
 
     service = get_service()
 
-    email = str(email).strip().lower()
+    # --------------------------------------------------------
+    # NORMALIZE EMAIL
+    # --------------------------------------------------------
+
+    email = str(
+        email
+    ).strip().lower()
+
+    # --------------------------------------------------------
+    # NORMALIZE FILE TYPE
+    # --------------------------------------------------------
+
+    file_type = str(
+        file_type
+    ).strip().lower()
+
+    # --------------------------------------------------------
+    # SELECT SPREADSHEET
+    # --------------------------------------------------------
+
+    if file_type == "excel":
+
+        spreadsheet_id = (
+            EXCEL_SPREADSHEET_ID
+        )
+
+    elif file_type == "word":
+
+        spreadsheet_id = (
+            WORD_SPREADSHEET_ID
+        )
+
+    else:
+
+        raise ValueError(
+            "file_type must be 'excel' or 'word'"
+        )
+
+    # --------------------------------------------------------
+    # READ EMAIL COLUMN
+    # --------------------------------------------------------
 
     result = service.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range="Sheet1!B:B"
+
+        spreadsheetId=spreadsheet_id,
+
+        # Uses the first sheet.
+        # Does not depend on "Sheet1".
+
+        range="B2:B10000",
+
     ).execute()
 
-    values = result.get("values", [])
+    # --------------------------------------------------------
+    # GET VALUES
+    # --------------------------------------------------------
+
+    values = result.get(
+        "values",
+        [],
+    )
+
+    # --------------------------------------------------------
+    # CHECK EMAIL
+    # --------------------------------------------------------
 
     for row in values:
-        if row:
-            existing_email = str(row[0]).strip().lower()
 
-            if existing_email == email:
-                return True
+        if not row:
+            continue
+
+        existing_email = str(
+            row[0]
+        ).strip().lower()
+
+        if existing_email == email:
+
+            print(
+                f"⚠️ Duplicate email found: "
+                f"{email} | "
+                f"Type: {file_type}"
+            )
+
+            return True
+
+    # --------------------------------------------------------
+    # EMAIL NOT FOUND
+    # --------------------------------------------------------
+
+    print(
+        f"✅ Email is available: "
+        f"{email} | "
+        f"Type: {file_type}"
+    )
 
     return False
 
 
-
-# ---------------------------------------------------------
-# Test
-# ---------------------------------------------------------
+# ============================================================
+# TEST
+# ============================================================
 
 if __name__ == "__main__":
 
+    # --------------------------------------------------------
+    # TEST EXCEL
+    # --------------------------------------------------------
+
     save_student_result(
+
         student_name="Ali",
+
         email="ali@example.com",
+
         attendance_number="01",
+
         grade="10A",
+
         project_id="project_1",
+
         score=16,
+
         max_score=20,
+
         status="PASSED",
-        feedback="The project was graded successfully."
+
+        feedback=(
+            "The Excel project was "
+            "graded successfully."
+        ),
+    )
+
+    # --------------------------------------------------------
+    # TEST WORD
+    # --------------------------------------------------------
+
+    save_word_student_result(
+
+        student_name="Ali",
+
+        email="ali@example.com",
+
+        attendance_number="01",
+
+        grade="10A",
+
+        project_id="project_1",
+
+        score=17,
+
+        max_score=20,
+
+        status="PASSED",
+
+        feedback=(
+            "The Word project was "
+            "graded successfully."
+        ),
     )

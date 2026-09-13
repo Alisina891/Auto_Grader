@@ -1,5 +1,5 @@
 {
-  "file_name": "master_4e02e03b6d7c45f5a2d76735985e4b53_پروژه اول ماه سنبله.xlsx",
+  "file_name": "master_97d5e11667794578a7f9422f8a7aa5e3_پروژه اول ماه سنبله.xlsx",
   "total_sheets": 2,
   "sheet_names": [
     "Sheet1",
@@ -48,11 +48,9 @@
               "name": "Aptos Narrow",
               "size": 16.0,
               "bold": true,
-              "italic": false,
-              "color": null
+              "italic": false
             },
             "fill": {
-              "color": null,
               "pattern": "solid"
             },
             "border": {
@@ -74,11 +72,9 @@
                 "name": "Aptos Narrow",
                 "size": 11.0,
                 "bold": false,
-                "italic": false,
-                "color": null
+                "italic": false
               },
               "fill": {
-                "color": "00000000",
                 "pattern": null
               },
               "border": {
@@ -99,11 +95,9 @@
                 "name": "Aptos Narrow",
                 "size": 11.0,
                 "bold": true,
-                "italic": false,
-                "color": null
+                "italic": false
               },
               "fill": {
-                "color": null,
                 "pattern": "solid"
               },
               "border": {
@@ -124,11 +118,9 @@
                 "name": "Aptos Narrow",
                 "size": 11.0,
                 "bold": false,
-                "italic": false,
-                "color": null
+                "italic": false
               },
               "fill": {
-                "color": null,
                 "pattern": "solid"
               },
               "border": {
@@ -208,11 +200,9 @@
               "name": "Aptos Narrow",
               "size": 16.0,
               "bold": true,
-              "italic": false,
-              "color": null
+              "italic": false
             },
             "fill": {
-              "color": null,
               "pattern": "solid"
             },
             "border": {
@@ -234,11 +224,9 @@
                 "name": "Aptos Narrow",
                 "size": 11.0,
                 "bold": false,
-                "italic": false,
-                "color": null
+                "italic": false
               },
               "fill": {
-                "color": "00000000",
                 "pattern": null
               },
               "border": {
@@ -259,11 +247,9 @@
                 "name": "Aptos Narrow",
                 "size": 11.0,
                 "bold": false,
-                "italic": false,
-                "color": null
+                "italic": false
               },
               "fill": {
-                "color": "00000000",
                 "pattern": null
               },
               "border": {

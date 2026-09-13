@@ -1,0 +1,511 @@
+{
+  "file_name": "master_word_936be9f0f3ce4a7d8004ab85c685e7bd_My Store.docx",
+  "document_type": "docx",
+  "paragraph_count": 9,
+  "heading_count": 0,
+  "table_count": 0,
+  "image_count": 1,
+  "shape_count": 0,
+  "section_count": 1,
+  "paragraphs": [
+    {
+      "index": 0,
+      "text": "My Store ",
+      "normalized_text": "my store",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": "center",
+      "runs": [
+        {
+          "text": "My Store ",
+          "normalized_text": "my store",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": "center",
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 1,
+      "text": "The first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "normalized_text": "the first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "The first ",
+          "normalized_text": "the first",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": "thingk",
+          "normalized_text": "thingk",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": " that ",
+          "normalized_text": "that",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": "alskdf;lskfhhf",
+          "normalized_text": "alskdf;lskfhhf",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": " ",
+          "normalized_text": "",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": "dflkjewr",
+          "normalized_text": "dflkjewr",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": " ",
+          "normalized_text": "",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": "lwehwelkhlkflskdhfl;kef",
+          "normalized_text": "lwehwelkhlkflskdhfl;kef",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 2,
+      "text": "Alsdkfhsaldkfsklf",
+      "normalized_text": "alsdkfhsaldkfsklf",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "Alsdkfhsaldkfsklf",
+          "normalized_text": "alsdkfhsaldkfsklf",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 3,
+      "text": "Asdkfhsad;lkfsd;lfkh",
+      "normalized_text": "asdkfhsad;lkfsd;lfkh",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "Asdkfhsad;lkfsd",
+          "normalized_text": "asdkfhsad;lkfsd",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": ";lfkh",
+          "normalized_text": ";lfkh",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 4,
+      "text": "Asdkfhsald;fkas;lf",
+      "normalized_text": "asdkfhsald;fkas;lf",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "Asdkfhsald;fkas",
+          "normalized_text": "asdkfhsald;fkas",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": ";lf",
+          "normalized_text": ";lf",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 5,
+      "text": "Sdlf;sdfkhsa;dklfh",
+      "normalized_text": "sdlf;sdfkhsa;dklfh",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "Sdlf;sdfkhsa",
+          "normalized_text": "sdlf;sdfkhsa",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        },
+        {
+          "text": ";dklfh",
+          "normalized_text": ";dklfh",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 6,
+      "text": "Afdjkhf;kshfsd",
+      "normalized_text": "afdjkhf;kshfsd",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [
+        {
+          "text": "Afdjkhf;kshfsd",
+          "normalized_text": "afdjkhf;kshfsd",
+          "format": {
+            "font_name": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+          }
+        }
+      ],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 7,
+      "text": "",
+      "normalized_text": "",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    },
+    {
+      "index": 8,
+      "text": "",
+      "normalized_text": "",
+      "style": "Normal",
+      "is_heading": false,
+      "heading_level": null,
+      "alignment": null,
+      "runs": [],
+      "formatting": {
+        "alignment": null,
+        "style": "Normal",
+        "left_indent": null,
+        "right_indent": null,
+        "first_line_indent": null,
+        "space_before": null,
+        "space_after": null,
+        "line_spacing": null
+      }
+    }
+  ],
+  "headings": [],
+  "sections": [
+    {
+      "index": 0,
+      "start_type": "NEW_PAGE (2)",
+      "page_width": 612.0,
+      "page_height": 792.0,
+      "left_margin": 72.0,
+      "right_margin": 72.0,
+      "top_margin": 72.0,
+      "bottom_margin": 72.0
+    }
+  ],
+  "tables": [],
+  "images": [
+    {
+      "relationship_id": "rId4",
+      "target": "media/image1.jpeg",
+      "filename": "image1.jpeg"
+    }
+  ],
+  "shapes": [],
+  "text_content": [
+    {
+      "text": "My Store",
+      "normalized_text": "my store",
+      "paragraph_index": 0,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "The first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "normalized_text": "the first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "paragraph_index": 1,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Alsdkfhsaldkfsklf",
+      "normalized_text": "alsdkfhsaldkfsklf",
+      "paragraph_index": 2,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Asdkfhsad;lkfsd;lfkh",
+      "normalized_text": "asdkfhsad;lkfsd;lfkh",
+      "paragraph_index": 3,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Asdkfhsald;fkas;lf",
+      "normalized_text": "asdkfhsald;fkas;lf",
+      "paragraph_index": 4,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Sdlf;sdfkhsa;dklfh",
+      "normalized_text": "sdlf;sdfkhsa;dklfh",
+      "paragraph_index": 5,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Afdjkhf;kshfsd",
+      "normalized_text": "afdjkhf;kshfsd",
+      "paragraph_index": 6,
+      "is_heading": false,
+      "heading_level": null
+    }
+  ],
+  "content_candidates": [
+    {
+      "text": "My Store",
+      "normalized_text": "my store",
+      "paragraph_index": 0,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "The first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "normalized_text": "the first thingk that alskdf;lskfhhf dflkjewr lwehwelkhlkflskdhfl;kef",
+      "paragraph_index": 1,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Alsdkfhsaldkfsklf",
+      "normalized_text": "alsdkfhsaldkfsklf",
+      "paragraph_index": 2,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Asdkfhsad;lkfsd;lfkh",
+      "normalized_text": "asdkfhsad;lkfsd;lfkh",
+      "paragraph_index": 3,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Asdkfhsald;fkas;lf",
+      "normalized_text": "asdkfhsald;fkas;lf",
+      "paragraph_index": 4,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Sdlf;sdfkhsa;dklfh",
+      "normalized_text": "sdlf;sdfkhsa;dklfh",
+      "paragraph_index": 5,
+      "is_heading": false,
+      "heading_level": null
+    },
+    {
+      "text": "Afdjkhf;kshfsd",
+      "normalized_text": "afdjkhf;kshfsd",
+      "paragraph_index": 6,
+      "is_heading": false,
+      "heading_level": null
+    }
+  ],
+  "formatting": {
+    "font_names": [],
+    "bold_run_count": 0,
+    "italic_run_count": 0,
+    "underline_run_count": 0,
+    "alignments": [
+      "center"
+    ],
+    "font_size_checked": false
+  },
+  "comparison_settings": {
+    "paragraph_location_strict": false,
+    "heading_location_strict": false,
+    "table_location_strict": false,
+    "font_size_strict": false,
+    "image_filename_strict": false,
+    "shape_type_strict": false
+  }
+}
